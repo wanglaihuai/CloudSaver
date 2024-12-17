@@ -22,7 +22,7 @@ app.use("/", routes);
 // 错误处理
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8009;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
