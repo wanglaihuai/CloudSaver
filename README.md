@@ -89,6 +89,10 @@ cp .env.example ./backend/.env
 - 后端服务：先进入后端目录`backend`下`npm run build`构建，然后执行 `npm run start`启动,默认端口为`8009`。
 - 通过`nginx`配置代理服务,将前端api的请求映射到后端服务。
 
+## 交流沟通
+
+<img src="./docs/images/20241217122628.jpg" width="400">
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
