@@ -109,14 +109,9 @@ cp .env.example ./backend/.env
 
 ## Docker 部署
 
-- 构建镜像：
-```bash
-# 构建示例
-docker build --platform linux/amd64 -t cloud-saver . --no-cache
-```
 - 运行容器：
 ```bash
-docker run -d -p 8008:8008 --name cloud-saver cloud-saver
+docker run -d -p 8008:8008 --name cloud-saver ghcr.io/jiangrui1994/cloudsaver
 ```
 
 ## 交流沟通
