@@ -1,70 +1,115 @@
 <template>
   <div class="search-bar">
-    <el-input
-      v-model="keyword"
-      placeholder="请输入搜索关键词与输入链接直接解析"
-      class="input-with-select"
-      @keyup.enter="handleSearch"
-      style="margin-bottom: 8px"
-    >
-      <template #append>
-        <el-button type="success" @click="handleSearch">{{ searchBtnText }}</el-button>
-      </template>
-    </el-input>
-    <el-alert
-      title="可直接输入链接进行资源解析，也可进行资源搜索！"
-      type="info"
-      show-icon
-      :closable="false"
-    />
-    <div class="search-new">
-      <el-button type="primary" @click="handleSearchNew">最新资源</el-button>
-      <div class="switch-source">
-        <el-switch v-model="backupPlan" /><span class="label">使用rsshub(较慢)</span>
-      </div>
+    <div class="search-bar__input">
+      <input
+        v-model="keyword"
+        type="text"
+        placeholder="请输入搜索关键词或输入链接直接解析"
+        class="input-with-select"
+        @keyup.enter="handleSearch"
+      />
+      <el-icon class="search_icon" size="28px" @click="handleSearch"><Search /></el-icon class="search_icon">
+    </div>
+    <div class="logout" alt="退出登录" @click="logout">
+      <el-tooltip
+        class="box-item"
+        effect="dark"
+        content="退出登录"
+        placement="bottom"
+      >
+      <el-icon><SwitchButton class="logout-icon" /></el-icon>
+      </el-tooltip>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { effect, ref } from "vue";
+  import { computed, ref,watch } from "vue";
   import { useResourceStore } from "@/stores/resource";
-
+  import { useRoute,useRouter } from "vue-router";
+  const route = useRoute();
+  const router = useRouter();
+  const resourcStore = useResourceStore();
   const keyword = ref("");
-  const backupPlan = ref(false);
-  const store = useResourceStore();
-  const searchBtnText = ref("搜索");
-
-  effect(() => {
-    // 监听搜索关键词的变化，如果存在，则自动触发搜索
-    if (keyword.value && keyword.value.startsWith("http")) {
-      searchBtnText.value = "解析";
-    } else {
-      searchBtnText.value = "搜索";
-    }
-  });
-
+  const routeKeyword = computed(() => route.query.keyword as string);
+  const logout = () => {
+    localStorage.removeItem("token");
+    router.push({ path: "/login" });
+  };
   const handleSearch = async () => {
     // 如果搜索内容是一个https的链接，则尝试解析链接
     if (keyword.value.startsWith("http")) {
-      store.parsingCloudLink(keyword.value);
+      resourcStore.parsingCloudLink(keyword.value);
       return;
     }
     if (!keyword.value.trim()) {
       return;
     }
-    await store.searchResources(keyword.value, backupPlan.value);
+    await resourcStore.searchResources(keyword.value);
+    if(route.path !== '/'){
+      router.push({ path: '/' });
+    }
   };
 
-  const handleSearchNew = async () => {
-    keyword.value = "";
-    await store.searchResources("", backupPlan.value);
-  };
+  watch(() => routeKeyword.value, () => {
+    if(routeKeyword.value){
+      keyword.value = routeKeyword.value;
+      handleSearch();
+    } else {
+      keyword.value = ''
+    }
+  });
+
+
 </script>
 
-<style scoped>
+<style scoped lang="scss">
   .search-bar {
-    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .logout{
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 28px;
+      margin-left: 15px;
+      cursor: pointer;
+    }
+    .search-bar__input {
+      width: 100%;
+      margin: 15px auto;
+      position: relative;
+      background-color: var(--theme-other_background);
+      box-shadow: 0 4px 10px rgba(225, 225, 225, 0.3);
+      height: 40px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+    }
+    .input-with-select {
+      width: 100%;
+      height: 100%;
+      background: none;
+      padding-left: 24px;
+      box-sizing: border-box;
+      border-radius: 40px;
+      line-height: 100%;
+      border: unset;
+      font-size: 18px;
+    }
+    .search_icon {
+      width: 64px;
+      height: 64px;
+      cursor: pointer;
+    }
+    .search-bar_tips{
+      width: 100%;
+      text-align: center;
+      margin: 20px auto;
+    }
   }
 
   .search-new {
@@ -78,5 +123,8 @@
   }
   .switch-source .label {
     margin-left: 5px;
+  }
+  .display-style {
+    margin-left: 20px;
   }
 </style>

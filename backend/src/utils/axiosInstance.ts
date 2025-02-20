@@ -1,20 +1,24 @@
 import axios, { AxiosInstance, AxiosRequestHeaders } from "axios";
 import tunnel from "tunnel";
 import { config } from "../config";
+import GlobalSetting from "../models/GlobalSetting";
+
+interface ProxyConfig {
+  host: string;
+  port: number;
+}
 
 export function createAxiosInstance(
   baseURL: string,
   headers: AxiosRequestHeaders,
-  useProxy: boolean = false
+  useProxy: boolean = false,
+  proxyConfig?: ProxyConfig
 ): AxiosInstance {
   let agent;
-
-  if (useProxy) {
+  console.log(proxyConfig);
+  if (useProxy && proxyConfig) {
     agent = tunnel.httpsOverHttp({
-      proxy: {
-        host: config.httpProxy.host,
-        port: Number(config.httpProxy.port),
-      },
+      proxy: proxyConfig,
     });
   }
 

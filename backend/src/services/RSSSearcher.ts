@@ -3,6 +3,7 @@ import { AxiosInstance, AxiosHeaders } from "axios";
 import { config } from "../config";
 import { Logger } from "../utils/logger";
 import { createAxiosInstance } from "../utils/axiosInstance";
+import { data } from "cheerio/dist/commonjs/api/attributes";
 
 interface RSSItem {
   title?: string;
@@ -81,7 +82,10 @@ export class RSSSearcher {
       }
     }
 
-    return allResults;
+    return {
+      data: allResults,
+      message: "搜索成功",
+    };
   }
 
   async searchInRSSFeed(rssUrl: string) {

@@ -1,5 +1,7 @@
 import { AxiosInstance, AxiosHeaders } from "axios";
 import { createAxiosInstance } from "../utils/axiosInstance";
+import GlobalSetting from "../models/GlobalSetting";
+import { GlobalSettingAttributes } from "../models/GlobalSetting";
 import * as cheerio from "cheerio";
 import { config } from "../config";
 import { Logger } from "../utils/logger";
@@ -7,19 +9,30 @@ import { Logger } from "../utils/logger";
 interface sourceItem {
   messageId?: string;
   title?: string;
+  completeTitle?: string;
   link?: string;
   pubDate?: string;
   content?: string;
   description?: string;
   image?: string;
   cloudLinks?: string[];
+  tags?: string[];
   cloudType?: string;
 }
 
 export class Searcher {
-  private axiosInstance: AxiosInstance;
+  private axiosInstance: AxiosInstance | null = null;
 
   constructor() {
+    this.initializeAxiosInstance();
+  }
+
+  private async initializeAxiosInstance(isUpdate = false) {
+    let settings = null;
+    if (isUpdate) {
+      settings = await GlobalSetting.findOne();
+    }
+    const globalSetting = settings?.dataValues || ({} as GlobalSettingAttributes);
     this.axiosInstance = createAxiosInstance(
       config.telegram.baseUrl,
       AxiosHeaders.from({
@@ -37,8 +50,14 @@ export class Searcher {
         "sec-fetch-user": "?1",
         "upgrade-insecure-requests": "1",
       }),
-      true
+      globalSetting?.isProxyEnabled,
+      globalSetting?.isProxyEnabled
+        ? { host: globalSetting?.httpProxyHost, port: globalSetting?.httpProxyPort }
+        : undefined
     );
+  }
+  public async updateAxiosInstance() {
+    await this.initializeAxiosInstance(true);
   }
 
   private extractCloudLinks(text: string): { links: string[]; cloudType: string } {
@@ -82,22 +101,38 @@ export class Searcher {
               channelId: channel.id,
             }));
 
-          allResults.push(...channelResults);
+          allResults.push({
+            list: channelResults,
+            channelInfo: {
+              ...channel,
+              channelLogo: results.channelLogo,
+            },
+            id: channel.id,
+          });
         }
       } catch (error) {
         Logger.error(`搜索频道 ${channel.name} 失败:`, error);
       }
     }
 
-    return allResults;
+    return {
+      data: allResults,
+    };
   }
 
   async searchInWeb(url: string, channelId: string) {
     try {
+      if (!this.axiosInstance) {
+        throw new Error("Axios instance is not initialized");
+      }
       const response = await this.axiosInstance.get(url);
       const html = response.data;
       const $ = cheerio.load(html);
       const items: sourceItem[] = [];
+      let channelLogo = "";
+      $(".tgme_header_link").each((_, element) => {
+        channelLogo = $(element).find("img").attr("src") || "";
+      });
       // 遍历每个消息容器
       $(".tgme_widget_message_wrap").each((_, element) => {
         const messageEl = $(element);
@@ -109,8 +144,24 @@ export class Searcher {
           ?.toString()
           .split("/")[1];
 
-        // 提取标题 (消息截取100长度)
-        const title = messageEl.find(".js-message_text").text().trim().substring(0, 50) + "...";
+        // 提取标题 (第一个<br>标签前的内容)
+        const title =
+          messageEl
+            .find(".js-message_text")
+            .html()
+            ?.split("<br>")[0]
+            .replace(/<[^>]+>/g, "")
+            .replace(/\n/g, "") || "";
+
+        // 提取描述 (第一个<a>标签前面的内容，不包含标题)
+        const content =
+          messageEl
+            .find(".js-message_text")
+            .html()
+            ?.replace(title, "")
+            .split("<a")[0]
+            .replace(/<br>/g, "")
+            .trim() || "";
 
         // 提取链接 (消息中的链接)
         // const link = messageEl.find('.tgme_widget_message').data('post');
@@ -118,23 +169,24 @@ export class Searcher {
         // 提取发布时间
         const pubDate = messageEl.find("time").attr("datetime");
 
-        // 提取内容 (完整消息文本)
-        const content = messageEl.find(".js-message_text").text();
-
-        // 提取描述 (消息文本中"描述："后的内容)
-        const description = content.split("描述：")[1]?.split("\n")[0]?.trim();
-
         // 提取图片
         const image = messageEl
           .find(".tgme_widget_message_photo_wrap")
           .attr("style")
           ?.match(/url\('(.+?)'\)/)?.[1];
 
+        const tags: string[] = [];
         // 提取云盘链接
         const links = messageEl
           .find(".tgme_widget_message_text a")
           .map((_, el) => $(el).attr("href"))
           .get();
+        messageEl.find(".tgme_widget_message_text a").each((index, element) => {
+          const tagText = $(element).text();
+          if (tagText && tagText.startsWith("#")) {
+            tags.push(tagText);
+          }
+        });
         const cloudInfo = this.extractCloudLinks(links.join(" "));
         // 添加到数组第一位
         items.unshift({
@@ -142,18 +194,21 @@ export class Searcher {
           title,
           pubDate,
           content,
-          description,
           image,
           cloudLinks: cloudInfo.links,
           cloudType: cloudInfo.cloudType,
+          tags,
         });
       });
-      return { items };
+      return { items: items, channelLogo };
     } catch (error) {
-      Logger.error(`RSS源解析错误: ${url}`, error);
+      Logger.error(`搜索错误: ${url}`, error);
       return {
         items: [],
+        channelLogo: "",
       };
     }
   }
 }
+
+export default new Searcher();

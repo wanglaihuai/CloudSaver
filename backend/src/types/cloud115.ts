@@ -5,9 +5,6 @@ export interface ShareInfo {
 }
 
 export interface ShareInfoResponse {
-  success: boolean;
-  data?: {
-    list: ShareInfo[];
-  };
-  error?: string;
+  data?: ShareInfo[];
+  message?: string;
 }

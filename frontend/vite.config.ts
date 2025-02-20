@@ -16,6 +16,13 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()],
     }),
   ],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "@/styles/global.scss";`,
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -40,6 +47,10 @@ export default defineConfig({
             console.log("Received Response:", proxyRes.statusCode, req.url);
           });
         },
+      },
+      "/tele-images": {
+        target: process.env.VITE_API_BASE_URL_PROXY || "http://127.0.0.1:8009",
+        changeOrigin: true,
       },
     },
   },

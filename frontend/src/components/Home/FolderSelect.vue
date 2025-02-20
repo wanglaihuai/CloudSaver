@@ -30,6 +30,7 @@
   import { quarkApi } from "@/api/quark";
   import type { TreeInstance } from "element-plus";
   import type { Folder } from "@/types";
+  import { type RequestResult } from "@/types/response";
   import { ElMessage } from "element-plus";
 
   const props = defineProps({
@@ -58,13 +59,10 @@
     quark: quarkApi,
   };
 
-  const loadNode = async (node: any, resolve: (data: Folder[]) => void) => {
+  const loadNode = async (node: any, resolve: (list: Folder[]) => void) => {
     const api = cloudTypeApiMap[props.cloudType as keyof typeof cloudTypeApiMap];
     try {
-      let res: {
-        data: Folder[];
-        error?: string;
-      } = { data: [] };
+      let res: RequestResult<Folder[]> = { code: 0, data: [] as Folder[], message: "" };
       if (node.level === 0) {
         if (api.getFolderList) {
           // 使用类型保护检查方法是否存在
@@ -76,11 +74,10 @@
           res = await api.getFolderList(node.data.cid);
         }
       }
-      if (res.data?.length > 0) {
-        resolve(res.data);
+      if (res?.code === 0) {
+        resolve(res.data.length ? res.data : []);
       } else {
-        resolve([]);
-        throw new Error(res.error);
+        throw new Error(res.message);
       }
     } catch (error) {
       ElMessage.error(error instanceof Error ? `${error.message}` : "获取目录失败");

@@ -30,6 +30,8 @@ interface HttpProxyConfig {
   port: string;
 }
 interface Config {
+  jwtSecret: string;
+  registerCode: string;
   rss: {
     baseUrl: string;
     channels: Channel[];
@@ -44,6 +46,7 @@ interface Config {
 }
 
 export const config: Config = {
+  jwtSecret: process.env.JWT_SECRET || "uV7Y$k92#LkF^q1b!",
   rss: {
     baseUrl: process.env.RSS_BASE_URL || "https://rsshub.rssforever.com/telegram/channel",
     channels: [
@@ -61,14 +64,15 @@ export const config: Config = {
       },
     ],
   },
+  registerCode: process.env.REGISTER_CODE || "9527",
 
   telegram: {
     baseUrl: process.env.TELEGRAM_BASE_URL || "https://t.me/s",
   },
 
   httpProxy: {
-    host: process.env.HTTP_PROXY_HOST || "127.0.0.1",
-    port: process.env.HTTP_PROXY_PORT || "7890",
+    host: process.env.HTTP_PROXY_HOST || "",
+    port: process.env.HTTP_PROXY_PORT || "",
   },
 
   cloudPatterns: {
@@ -77,7 +81,7 @@ export const config: Config = {
     weiyun: /https?:\/\/share\.weiyun\.com\/[^\s<>"]+/g,
     aliyun: /https?:\/\/\w+\.aliyundrive\.com\/[^\s<>"]+/g,
     // pan115有两个域名 115.com 和 anxia.com
-    pan115: /https?:\/\/(?:115|anxia)\.com\/s\/[^\s<>"]+/g,
+    pan115: /https?:\/\/(?:115|anxia|115cdn)\.com\/s\/[^\s<>"]+/g,
     quark: /https?:\/\/pan\.quark\.cn\/[^\s<>"]+/g,
   },
 

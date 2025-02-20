@@ -1,0 +1,197 @@
+<template>
+  <el-table
+    v-loading="store.loading"
+    class="resource-list-table"
+    :data="store.resources"
+    style="width: 100%"
+    row-key="id"
+    :default-expand-all="true"
+  >
+    <el-table-column type="expand">
+      <template #default="props">
+        <el-table :data="props.row.list" style="width: 100%">
+          <el-table-column label="图片" width="180">
+            <template #default="{ row }">
+              <el-image
+                class="table-item-image"
+                v-if="row.image"
+                :src="`/tele-images/?url=${encodeURIComponent(row.image as string)}`"
+                hide-on-click-modal
+                :preview-src-list="[
+                  `${location.origin}/tele-images/?url=${encodeURIComponent(row.image as string)}`,
+                ]"
+                :zoom-rate="1.2"
+                :max-scale="7"
+                :min-scale="0.2"
+                :initial-index="4"
+                preview-teleported
+                :z-index="999"
+                fit="cover"
+                width="60"
+                height="90"
+              />
+              <el-icon v-else size="20"><Close /></el-icon>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="标题" width="180">
+            <template #default="{ row }">
+              <el-link :href="row.cloudLinks[0]" target="_blank">
+                {{ row.title }}
+              </el-link>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="描述">
+            <template #default="{ row }">
+              <div v-html="row.content" class="item-description"></div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="tags" label="标签">
+            <template #default="{ row }">
+              <div class="tags-list" v-if="row.tags.length > 0">
+                <span>标签：</span>
+                <el-tag
+                  v-for="item in row.tags"
+                  class="resource_tag"
+                  :key="item"
+                  @click="searchMovieforTag(item)"
+                >
+                  {{ item }}
+                </el-tag>
+              </div>
+              <span v-else>无</span>
+            </template>
+          </el-table-column>
+
+          <!-- <el-table-column label="地址">
+            <template #default="{ row }">
+              <el-link :href="row.cloudLinks[0]" target="_blank">
+                {{ row.cloudLinks[0] }}
+              </el-link>
+            </template>
+          </el-table-column> -->
+          <el-table-column label="云盘类型" width="120">
+            <template #default="{ row }">
+              <el-tag :type="store.tagColor[row.cloudType as keyof TagColor]" effect="dark" round>
+                {{ row.cloudType }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="180">
+            <template #default="{ row }">
+              <el-button @click="handleSave(row)">转存</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="load-more">
+          <el-button :loading="props.row.loading" @click="handleLoadMore(props.row.id)">
+            加载更多
+          </el-button>
+        </div>
+      </template>
+    </el-table-column>
+    <el-table-column label="来源" prop="channel">
+      <template #default="{ row }">
+        <div class="group-header">
+          <el-image :src="row.channelInfo.channelLogo" class="channel-logo" fit="cover" lazy />
+          <span>{{ row.channelInfo.name }}</span>
+          <span class="item-count">({{ row.list.length }})</span>
+        </div>
+      </template>
+    </el-table-column>
+  </el-table>
+</template>
+
+<script setup lang="ts">
+  import { useResourceStore } from "@/stores/resource";
+  import type { Resource, TagColor } from "@/types";
+  import { computed } from "vue";
+
+  const store = useResourceStore();
+
+  const emit = defineEmits(["save", "loadMore", "searchMovieforTag"]);
+
+  const location = computed(() => window.location);
+
+  const handleSave = (resource: Resource) => {
+    emit("save", resource);
+  };
+
+  // 添加加载更多处理函数
+  const handleLoadMore = (channelId: string) => {
+    emit("loadMore", channelId);
+  };
+
+  const searchMovieforTag = (tag: string) => {
+    emit("searchMovieforTag", tag);
+  };
+</script>
+
+<style scoped>
+  .resource-list-table {
+    border-radius: 15px;
+  }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .channel-logo {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .table-item-image {
+    border-radius: 20px;
+    width: 100%;
+    height: 220px;
+  }
+
+  .item-count {
+    color: #909399;
+    font-size: 0.9em;
+  }
+  .tags-list {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .resource_tag {
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 5px;
+  }
+  .item-description {
+    max-width: 100%;
+    margin: 15px 0;
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+    white-space: all;
+  }
+
+  :deep(.el-table__expand-column) {
+    .cell {
+      padding: 0 !important;
+    }
+  }
+
+  :deep(.el-table__expanded-cell) {
+    padding: 20px !important;
+  }
+
+  :deep(.el-table__expand-icon) {
+    height: 23px;
+    line-height: 23px;
+  }
+  .load-more {
+    display: flex;
+    justify-content: center;
+    padding: 16px 0;
+  }
+</style>

@@ -2,8 +2,25 @@ import { defineStore } from "pinia";
 import { cloud115Api } from "@/api/cloud115";
 import { resourceApi } from "@/api/resource";
 import { quarkApi } from "@/api/quark";
-import type { Resource, ShareInfoResponse, Save115FileParams, SaveQuarkFileParams } from "@/types";
+import type {
+  Resource,
+  ShareInfoResponse,
+  Save115FileParams,
+  SaveQuarkFileParams,
+  ResourceItem,
+} from "@/types";
 import { ElMessage } from "element-plus";
+
+interface StorageListObject {
+  list: Resource[];
+  lastUpdateTime?: string;
+}
+
+const lastResource = (
+  localStorage.getItem("last_resource_list")
+    ? JSON.parse(localStorage.getItem("last_resource_list") as string)
+    : { list: [] }
+) as StorageListObject;
 
 // 定义云盘驱动配置类型
 interface CloudDriveConfig {
@@ -12,7 +29,7 @@ interface CloudDriveConfig {
   regex: RegExp;
   api: {
     getShareInfo: (parsedCode: any) => Promise<ShareInfoResponse>;
-    saveFile: (params: Record<string, any>) => Promise<{ success: boolean; error?: string }>;
+    saveFile: (params: Record<string, any>) => Promise<any>;
   };
   parseShareCode: (match: RegExpMatchArray) => Record<string, string>;
   getSaveParams: (shareInfo: ShareInfoResponse, folderId: string) => Record<string, any>;
@@ -23,20 +40,20 @@ export const CLOUD_DRIVES: CloudDriveConfig[] = [
   {
     name: "115网盘",
     type: "pan115",
-    regex: /(?:115|anxia)\.com\/s\/([^?]+)(?:\?password=([^#]+))?/,
+    regex: /(?:115|anxia|115cdn)\.com\/s\/([^?]+)(?:\?password=([^&#]+))?/,
     api: {
       getShareInfo: (parsedCode: { shareCode: string; receiveCode: string }) =>
         cloud115Api.getShareInfo(parsedCode.shareCode, parsedCode.receiveCode),
-      saveFile: (params) => cloud115Api.saveFile(params as Save115FileParams),
+      saveFile: async (params) => await cloud115Api.saveFile(params as Save115FileParams),
     },
     parseShareCode: (match) => ({
       shareCode: match[1],
       receiveCode: match[2] || "",
     }),
     getSaveParams: (shareInfo, folderId) => ({
-      shareCode: shareInfo.data.shareCode,
-      receiveCode: shareInfo.data.receiveCode,
-      fileId: shareInfo.data.list[0].fileId,
+      shareCode: shareInfo.shareCode,
+      receiveCode: shareInfo.receiveCode,
+      fileId: shareInfo.list[0].fileId,
       folderId,
     }),
   },
@@ -46,15 +63,15 @@ export const CLOUD_DRIVES: CloudDriveConfig[] = [
     regex: /pan\.quark\.cn\/s\/([a-zA-Z0-9]+)/,
     api: {
       getShareInfo: (parsedCode: { pwdId: string }) => quarkApi.getShareInfo(parsedCode.pwdId),
-      saveFile: (params) => quarkApi.saveFile(params as SaveQuarkFileParams),
+      saveFile: async (params) => await quarkApi.saveFile(params as SaveQuarkFileParams),
     },
     parseShareCode: (match) => ({ pwdId: match[1] }),
     getSaveParams: (shareInfo, folderId) => ({
-      fid_list: shareInfo.data.list.map((item) => item.fileId || ""),
-      fid_token_list: shareInfo.data.list.map((item) => item.fileIdToken || ""),
+      fid_list: shareInfo.list.map((item) => item.fileId || ""),
+      fid_token_list: shareInfo.list.map((item) => item.fileIdToken || ""),
       to_pdir_fid: folderId,
-      pwd_id: shareInfo.data.pwdId || "",
-      stoken: shareInfo.data.stoken || "",
+      pwd_id: shareInfo.pwdId || "",
+      stoken: shareInfo.stoken || "",
       pdir_fid: "0",
       scene: "link",
     }),
@@ -63,7 +80,15 @@ export const CLOUD_DRIVES: CloudDriveConfig[] = [
 
 export const useResourceStore = defineStore("resource", {
   state: () => ({
-    resources: [] as Resource[],
+    tagColor: {
+      baiduPan: "primary",
+      weiyun: "info",
+      aliyun: "warning",
+      pan115: "danger",
+      quark: "success",
+    },
+    resources: lastResource.list,
+    lastUpdateTime: lastResource.lastUpdateTime || "",
     selectedResources: [] as Resource[],
     loading: false,
     lastKeyWord: "",
@@ -72,65 +97,64 @@ export const useResourceStore = defineStore("resource", {
 
   actions: {
     // 搜索资源
-    async searchResources(
-      keyword?: string,
-      backupPlan = false,
-      isLoadMore = false,
-      channelId?: string,
-      lastMessageId?: string
-    ): Promise<void> {
+    async searchResources(keyword?: string, isLoadMore = false, channelId?: string): Promise<void> {
       this.loading = true;
       if (!isLoadMore) this.resources = [];
       try {
+        let lastMessageId = "";
         if (isLoadMore) {
+          const list = this.resources.find((x) => x.id === channelId)?.list || [];
+          lastMessageId = list[list.length - 1].messageId || "";
           if (!lastMessageId) {
             ElMessage.error("当次搜索源不支持加载更多");
             return;
           }
           keyword = this.lastKeyWord;
-          backupPlan = this.backupPlan;
         }
-        const { data } = await resourceApi.search(
-          keyword || "",
-          backupPlan,
-          channelId,
-          lastMessageId
-        );
+        let { data = [] } = await resourceApi.search(keyword || "", channelId, lastMessageId);
+        data = data.filter((item) => item.list.length > 0);
         this.lastKeyWord = keyword || "";
         if (isLoadMore) {
-          this.resources.push(
-            ...data.filter(
-              (item) => !this.selectedResources.some((selectedItem) => selectedItem.id === item.id)
-            )
-          );
+          const findedIndex = this.resources.findIndex((item) => item.id === data[0]?.id);
+          if (findedIndex !== -1) {
+            this.resources[findedIndex].list.push(...data[0].list);
+          }
+          if (data.length === 0) {
+            ElMessage.warning("没有更多了~");
+          }
         } else {
-          this.resources = data;
+          this.resources = data.map((item) => ({ ...item, displayList: true }));
+          if (this.resources.length === 0) {
+            ElMessage.warning("未搜索到相关资源");
+          }
         }
+        // 获取当前时间字符串 用于存储到本地
+        this.lastUpdateTime = new Date().toLocaleString();
+        localStorage.setItem(
+          "last_resource_list",
+          JSON.stringify({ list: this.resources, lastUpdateTime: this.lastUpdateTime })
+        );
       } catch (error) {
-        this.handleError("搜索失败，请重试", error);
+        this.handleError("搜索失败，请重试", null);
       } finally {
         this.loading = false;
       }
     },
 
     // 转存资源
-    async saveResource(resource: Resource, folderId: string): Promise<void> {
-      try {
-        const savePromises: Promise<void>[] = [];
-        CLOUD_DRIVES.forEach((drive) => {
-          if (resource.cloudLinks.some((link) => drive.regex.test(link))) {
-            savePromises.push(this.saveResourceToDrive(resource, folderId, drive));
-          }
-        });
-        await Promise.all(savePromises);
-      } catch (error) {
-        this.handleError("转存失败，请重试", error);
-      }
+    async saveResource(resource: ResourceItem, folderId: string): Promise<void> {
+      const savePromises: Promise<void>[] = [];
+      CLOUD_DRIVES.forEach((drive) => {
+        if (resource.cloudLinks.some((link) => drive.regex.test(link))) {
+          savePromises.push(this.saveResourceToDrive(resource, folderId, drive));
+        }
+      });
+      await Promise.all(savePromises);
     },
 
     // 保存资源到网盘
     async saveResourceToDrive(
-      resource: Resource,
+      resource: ResourceItem,
       folderId: string,
       drive: CloudDriveConfig
     ): Promise<void> {
@@ -141,27 +165,28 @@ export const useResourceStore = defineStore("resource", {
       if (!match) throw new Error("链接解析失败");
 
       const parsedCode = drive.parseShareCode(match);
-      try {
-        let shareInfo = await drive.api.getShareInfo(parsedCode);
-        if (shareInfo?.data) {
+
+      let shareInfo = await drive.api.getShareInfo(parsedCode);
+      if (shareInfo) {
+        if (Array.isArray(shareInfo)) {
+          shareInfo = {
+            list: shareInfo,
+            ...parsedCode,
+          };
+        } else {
           shareInfo = {
             ...shareInfo,
-            data: {
-              ...shareInfo.data,
-              ...parsedCode,
-            },
+            ...parsedCode,
           };
         }
-        const params = drive.getSaveParams(shareInfo, folderId);
-        const result = await drive.api.saveFile(params);
+      }
+      const params = drive.getSaveParams(shareInfo, folderId);
+      const result = await drive.api.saveFile(params);
 
-        if (result.success) {
-          ElMessage.success(`${drive.name} 转存成功`);
-        } else {
-          throw new Error(result.error);
-        }
-      } catch (error) {
-        throw new Error(error instanceof Error ? error.message : `${drive.name} 转存失败`);
+      if (result.code === 0) {
+        ElMessage.success(`${drive.name} 转存成功`);
+      } else {
+        ElMessage.error(result.message);
       }
     },
 
@@ -177,17 +202,33 @@ export const useResourceStore = defineStore("resource", {
         if (!match) throw new Error("链接解析失败");
 
         const parsedCode = matchedDrive.parseShareCode(match);
-        const shareInfo = await matchedDrive.api.getShareInfo(parsedCode);
+        let shareInfo = await matchedDrive.api.getShareInfo(parsedCode);
+        if (Array.isArray(shareInfo)) {
+          shareInfo = {
+            list: shareInfo,
+          };
+        }
 
-        if (shareInfo?.data?.list?.length) {
+        if (shareInfo?.list?.length) {
           this.resources = [
             {
-              id: "1",
-              title: shareInfo.data.list.map((item) => item.fileName).join(", "),
-              cloudLinks: [url],
-              cloudType: matchedDrive.type,
-              channel: matchedDrive.name,
-              pubDate: "",
+              id: "",
+              channelInfo: {
+                name: "自定义搜索",
+                channelLogo: "",
+                channelId: "",
+              },
+              displayList: true,
+              list: [
+                {
+                  id: "1",
+                  title: shareInfo.list.map((item) => item.fileName).join(", "),
+                  cloudLinks: [url],
+                  cloudType: matchedDrive.type,
+                  channel: matchedDrive.name,
+                  pubDate: "",
+                },
+              ],
             },
           ];
         } else {

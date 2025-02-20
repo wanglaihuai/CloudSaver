@@ -6,12 +6,9 @@ import { ShareInfoResponse } from "../types/cloud115";
 
 export class Cloud115Service {
   private api: AxiosInstance;
+  private cookie: string = "";
 
-  constructor(cookie: string) {
-    if (!cookie) {
-      throw new Error("115网盘需要提供cookie进行身份验证");
-    }
-
+  constructor(cookie?: string) {
     this.api = createAxiosInstance(
       "https://webapi.115.com",
       AxiosHeaders.from({
@@ -29,91 +26,77 @@ export class Cloud115Service {
         Referer: "https://servicewechat.com/wx2c744c010a61b0fa/94/page-frame.html",
         "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "zh-CN,zh;q=0.9",
-        cookie: cookie,
       })
     );
+    if (cookie) {
+      this.setCookie(cookie);
+    } else {
+      console.log("请注意:115网盘需要提供cookie进行身份验证");
+    }
+    this.api.interceptors.request.use((config) => {
+      config.headers.cookie = cookie || this.cookie;
+      return config;
+    });
+  }
+
+  public setCookie(cookie: string) {
+    this.cookie = cookie;
   }
 
   async getShareInfo(shareCode: string, receiveCode = ""): Promise<ShareInfoResponse> {
-    try {
-      const response = await this.api.get("/share/snap", {
-        params: {
-          share_code: shareCode,
-          receive_code: receiveCode,
-          offset: 0,
-          limit: 20,
-          cid: "",
-        },
-      });
+    const response = await this.api.get("/share/snap", {
+      params: {
+        share_code: shareCode,
+        receive_code: receiveCode,
+        offset: 0,
+        limit: 20,
+        cid: "",
+      },
+    });
 
-      if (response.data?.state && response.data.data?.list?.length > 0) {
-        return {
-          success: true,
-          data: {
-            list: response.data.data.list.map((item: any) => ({
-              fileId: item.cid,
-              fileName: item.n,
-              fileSize: item.s,
-            })),
-          },
-        };
-      }
-
+    if (response.data?.state && response.data.data?.list?.length > 0) {
       return {
-        success: false,
-        error: "未找到文件信息",
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "未知错误",
+        data: response.data.data.list.map((item: any) => ({
+          fileId: item.cid,
+          fileName: item.n,
+          fileSize: item.s,
+        })),
       };
     }
+    throw new Error("未找到文件信息");
   }
 
   async getFolderList(parentCid = "0") {
-    try {
-      const response = await this.api.get("/files", {
-        params: {
-          aid: 1,
-          cid: parentCid,
-          o: "user_ptime",
-          asc: 0,
-          offset: 0,
-          show_dir: 1,
-          limit: 50,
-          type: 0,
-          format: "json",
-          star: 0,
-          suffix: "",
-          natsort: 1,
-        },
-      });
+    const response = await this.api.get("/files", {
+      params: {
+        aid: 1,
+        cid: parentCid,
+        o: "user_ptime",
+        asc: 0,
+        offset: 0,
+        show_dir: 1,
+        limit: 50,
+        type: 0,
+        format: "json",
+        star: 0,
+        suffix: "",
+        natsort: 1,
+      },
+    });
 
-      if (response.data?.state) {
-        return {
-          success: true,
-          data: response.data.data
-            .filter((item: any) => item.cid)
-            .map((folder: any) => ({
-              cid: folder.cid,
-              name: folder.n,
-              path: response.data.path,
-            })),
-        };
-      } else {
-        Logger.error("获取目录列表失败:", response.data.error);
-        return {
-          success: false,
-          error: "获取115pan目录列表失败:" + response.data.error,
-        };
-      }
-    } catch (error) {
-      Logger.error("获取目录列表失败:", error);
+    if (response.data?.state) {
       return {
-        success: false,
-        error: "获取115pan目录列表失败",
+        data: response.data.data
+          .filter((item: any) => item.cid && !!item.ns)
+          .map((folder: any) => ({
+            cid: folder.cid,
+            name: folder.n,
+            path: response.data.path,
+          })),
       };
+    } else {
+      Logger.error("获取目录列表失败:", response.data.error);
+      throw new Error("获取115pan目录列表失败:" + response.data.error);
     }
   }
 
@@ -123,26 +106,23 @@ export class Cloud115Service {
     receiveCode: string;
     fileId: string;
   }) {
-    try {
-      const param = new URLSearchParams({
-        cid: params.cid,
-        user_id: config.cloud115.userId,
-        share_code: params.shareCode,
-        receive_code: params.receiveCode,
-        file_id: params.fileId,
-      });
-      const response = await this.api.post("/share/receive", param.toString());
-
+    const param = new URLSearchParams({
+      cid: params.cid,
+      user_id: config.cloud115.userId,
+      share_code: params.shareCode,
+      receive_code: params.receiveCode,
+      file_id: params.fileId,
+    });
+    const response = await this.api.post("/share/receive", param.toString());
+    Logger.info("保存文件:", response.data);
+    if (response.data.state) {
       return {
-        success: response.data.state,
-        error: response.data.error,
-        data: response.data,
+        message: response.data.error,
+        data: response.data.data,
       };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "未知错误",
-      };
+    } else {
+      Logger.error("保存文件失败:", response.data.error);
+      throw new Error("保存115pan文件失败:" + response.data.error);
     }
   }
 }

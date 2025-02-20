@@ -1,12 +1,35 @@
 import { createRouter, createWebHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
-import HomeView from "@/views/HomeView.vue";
+import Login from "@/views/Login.vue";
+import Home from "@/views/Home.vue";
 
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
     name: "home",
-    component: HomeView,
+    component: Home,
+    children: [
+      {
+        path: "",
+        name: "resource",
+        component: () => import("@/views/ResourceList.vue"),
+      },
+      {
+        path: "/douban",
+        name: "douban",
+        component: () => import("@/views/Douban.vue"),
+      },
+      {
+        path: "/setting",
+        name: "setting",
+        component: () => import("@/views/Setting.vue"),
+      },
+    ],
+  },
+  {
+    path: "/login",
+    name: "login",
+    component: Login,
   },
 ];
 

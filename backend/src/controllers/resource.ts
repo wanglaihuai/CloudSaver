@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { RSSSearcher } from "../services/RSSSearcher";
-import { Searcher } from "../services/Searcher";
-import { handleResponse } from "../utils/responseHandler";
-import handleError from "../utils/handleError";
+import Searcher from "../services/Searcher";
+import { sendSuccess, sendError } from "../utils/response";
 
 export const resourceController = {
   async rssSearch(req: Request, res: Response, next: NextFunction) {
@@ -10,23 +9,26 @@ export const resourceController = {
       const { keyword } = req.query;
       const searcher = new RSSSearcher();
       const result = await searcher.searchAll(keyword as string);
-      handleResponse(res, result, true);
+      sendSuccess(res, result);
     } catch (error) {
-      handleError(res, error, "获取资源发生未知错误", next);
+      sendError(res, {
+        message: (error as Error).message || "RSS 搜索失败",
+      });
     }
   },
   async search(req: Request, res: Response, next: NextFunction) {
     try {
       const { keyword, channelId = "", lastMessageId = "" } = req.query; // Remove `: string` from here
-      const searcher = new Searcher();
-      const result = await searcher.searchAll(
+      const result = await Searcher.searchAll(
         keyword as string,
         channelId as string,
         lastMessageId as string
       );
-      handleResponse(res, result, true);
+      sendSuccess(res, result);
     } catch (error) {
-      handleError(res, error, "获取资源发生未知错误", next);
+      sendError(res, {
+        message: (error as Error).message || "搜索资源失败",
+      });
     }
   },
 };

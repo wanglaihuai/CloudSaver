@@ -4,6 +4,11 @@ dist/
 .env.local
 .env.*.local
 
+*.tar
+
+# 数据库数据
+*.sqlite
+
 # 保留模板
 !.env.example
 
