@@ -12,8 +12,8 @@
 
 ## 注意事项
 
-1. 此项目的资源搜索需要用到代理环境，请自行搭建。
-2. 新用户注册，管理员默认注册码：230713；普通用户默认注册码：9527
+1. 此项目的资源搜索需要用到**代理环境**，请自行搭建。
+2. 新用户注册，**管理员**默认注册码：230713；普通用户默认注册码：9527
 
 ## 功能特性
 
@@ -44,17 +44,13 @@
 
 <img src="./docs/images/hotmovie.png" width="400">
 
-
 ### 转存
 
 <img src="./docs/images/save.png" width="400">
 
-
 ### 系统设置
 
 <img src="./docs/images/setting.png" width="400">
-
-
 
 ## 技术栈
 
@@ -110,21 +106,21 @@ cp .env.example ./backend/.env
 ## Docker 部署
 
 - 运行容器：
+
 ```bash
 docker run -d -p 8008:8008 --name cloud-saver ghcr.io/jiangrui1994/cloudsaver
 ```
 
-
 ### docker 镜像地址
+
 [ghcr.io/jiangrui1994/cloudsaver](ghcr.io/jiangrui1994/cloudsaver)
 
 相关nas镜像拉取 可从此地址拉取
 
-
 ## 交流沟通
 
+<img src="./docs/images/wechat.jpg" width="400">
 <img src="./docs/images/20250220115710.jpg" width="400">
-<img src="./docs/images/20241217122628.jpg" width="400">
 
 ## License
 
