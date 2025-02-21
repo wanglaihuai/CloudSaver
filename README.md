@@ -114,6 +114,13 @@ cp .env.example ./backend/.env
 docker run -d -p 8008:8008 --name cloud-saver ghcr.io/jiangrui1994/cloudsaver
 ```
 
+
+### docker 镜像地址
+[ghcr.io/jiangrui1994/cloudsaver](ghcr.io/jiangrui1994/cloudsaver)
+
+相关nas镜像拉取 可从此地址拉取
+
+
 ## 交流沟通
 
 <img src="./docs/images/20250220115710.jpg" width="400">
