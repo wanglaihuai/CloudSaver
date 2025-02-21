@@ -114,7 +114,7 @@ export class QuarkService {
         __t: Date.now(),
       },
     });
-    if (response.data?.data && response.data.data.list.length) {
+    if (response.data?.data && response.data.data.list) {
       const data = response.data.data.list
         .filter((item: any) => item.fid && item.file_type === 0)
         .map((folder: any) => ({
