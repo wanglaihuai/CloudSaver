@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { sendSuccess, sendError } from "../utils/response";
 import Searcher from "../services/Searcher";
 import UserSetting from "../models/UserSetting";
 import GlobalSetting from "../models/GlobalSetting";
 
 export const settingController = {
-  async get(req: Request, res: Response) {
+  async get(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId;
       const role = req.user?.role;
@@ -36,7 +36,7 @@ export const settingController = {
       sendError(res, { message: (error as Error).message || "获取设置失败" });
     }
   },
-  async save(req: Request, res: Response) {
+  async save(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId;
       const role = req.user?.role;

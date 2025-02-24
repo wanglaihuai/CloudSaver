@@ -1,7 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestHeaders } from "axios";
 import tunnel from "tunnel";
-import { config } from "../config";
-import GlobalSetting from "../models/GlobalSetting";
 
 interface ProxyConfig {
   host: string;

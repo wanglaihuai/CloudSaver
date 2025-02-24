@@ -12,7 +12,7 @@ export class ImageControll {
     this.initializeAxiosInstance();
   }
 
-  private async initializeAxiosInstance(isUpdate = false) {
+  private async initializeAxiosInstance(isUpdate = false): Promise<void> {
     let settings = null;
     if (isUpdate) {
       settings = await GlobalSetting.findOne();
@@ -35,7 +35,7 @@ export class ImageControll {
       withCredentials: true,
     });
   }
-  async getImages(req: Request, res: Response, url: string) {
+  async getImages(req: Request, res: Response, url: string): Promise<void> {
     try {
       if (!this.isUpdate) await this.initializeAxiosInstance(true);
       const response = await this.axiosInstance?.get(url, { responseType: "stream" });
@@ -50,7 +50,7 @@ export class ImageControll {
 const iamgesInstance = new ImageControll();
 
 export const imageControll = {
-  getImages: async (req: Request, res: Response) => {
+  getImages: async (req: Request, res: Response): Promise<void> => {
     const url = req.query.url as string;
     iamgesInstance.getImages(req, res, url);
   },

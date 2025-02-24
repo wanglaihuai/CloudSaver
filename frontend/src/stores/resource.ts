@@ -23,20 +23,26 @@ const lastResource = (
 ) as StorageListObject;
 
 // 定义云盘驱动配置类型
-interface CloudDriveConfig {
+interface CloudDriveConfig<
+  T extends Record<string, string>,
+  P extends Save115FileParams | SaveQuarkFileParams,
+> {
   name: string;
   type: string;
   regex: RegExp;
   api: {
-    getShareInfo: (parsedCode: any) => Promise<ShareInfoResponse>;
-    saveFile: (params: Record<string, any>) => Promise<any>;
+    getShareInfo: (parsedCode: T) => Promise<ShareInfoResponse>;
+    saveFile: (params: P) => Promise<{ code: number; message?: string }>;
   };
-  parseShareCode: (match: RegExpMatchArray) => Record<string, string>;
-  getSaveParams: (shareInfo: ShareInfoResponse, folderId: string) => Record<string, any>;
+  parseShareCode: (match: RegExpMatchArray) => T;
+  getSaveParams: (shareInfo: ShareInfoResponse, folderId: string) => P;
 }
 
 // 云盘类型配置
-export const CLOUD_DRIVES: CloudDriveConfig[] = [
+export const CLOUD_DRIVES: [
+  CloudDriveConfig<{ shareCode: string; receiveCode: string }, Save115FileParams>,
+  CloudDriveConfig<{ pwdId: string }, SaveQuarkFileParams>,
+] = [
   {
     name: "115网盘",
     type: "pan115",
@@ -44,15 +50,17 @@ export const CLOUD_DRIVES: CloudDriveConfig[] = [
     api: {
       getShareInfo: (parsedCode: { shareCode: string; receiveCode: string }) =>
         cloud115Api.getShareInfo(parsedCode.shareCode, parsedCode.receiveCode),
-      saveFile: async (params) => await cloud115Api.saveFile(params as Save115FileParams),
+      saveFile: async (params: Save115FileParams) => {
+        return await cloud115Api.saveFile(params as Save115FileParams);
+      },
     },
-    parseShareCode: (match) => ({
+    parseShareCode: (match: RegExpMatchArray) => ({
       shareCode: match[1],
       receiveCode: match[2] || "",
     }),
-    getSaveParams: (shareInfo, folderId) => ({
-      shareCode: shareInfo.shareCode,
-      receiveCode: shareInfo.receiveCode,
+    getSaveParams: (shareInfo: ShareInfoResponse, folderId: string) => ({
+      shareCode: shareInfo.shareCode || "",
+      receiveCode: shareInfo.receiveCode || "",
       fileId: shareInfo.list[0].fileId,
       folderId,
     }),
@@ -63,12 +71,16 @@ export const CLOUD_DRIVES: CloudDriveConfig[] = [
     regex: /pan\.quark\.cn\/s\/([a-zA-Z0-9]+)/,
     api: {
       getShareInfo: (parsedCode: { pwdId: string }) => quarkApi.getShareInfo(parsedCode.pwdId),
-      saveFile: async (params) => await quarkApi.saveFile(params as SaveQuarkFileParams),
+      saveFile: async (params: SaveQuarkFileParams) => {
+        return await quarkApi.saveFile(params as SaveQuarkFileParams);
+      },
     },
-    parseShareCode: (match) => ({ pwdId: match[1] }),
-    getSaveParams: (shareInfo, folderId) => ({
-      fid_list: shareInfo.list.map((item) => item.fileId || ""),
-      fid_token_list: shareInfo.list.map((item) => item.fileIdToken || ""),
+    parseShareCode: (match: RegExpMatchArray) => ({ pwdId: match[1] }),
+    getSaveParams: (shareInfo: ShareInfoResponse, folderId: string) => ({
+      fid_list: shareInfo.list.map((item: { fileId?: string }) => item.fileId || ""),
+      fid_token_list: shareInfo.list.map(
+        (item: { fileIdToken?: string }) => item.fileIdToken || ""
+      ),
       to_pdir_fid: folderId,
       pwd_id: shareInfo.pwdId || "",
       stoken: shareInfo.stoken || "",
@@ -156,7 +168,9 @@ export const useResourceStore = defineStore("resource", {
     async saveResourceToDrive(
       resource: ResourceItem,
       folderId: string,
-      drive: CloudDriveConfig
+      drive:
+        | CloudDriveConfig<{ shareCode: string; receiveCode: string }, Save115FileParams>
+        | CloudDriveConfig<{ pwdId: string }, SaveQuarkFileParams>
     ): Promise<void> {
       const link = resource.cloudLinks.find((link) => drive.regex.test(link));
       if (!link) return;
@@ -166,27 +180,50 @@ export const useResourceStore = defineStore("resource", {
 
       const parsedCode = drive.parseShareCode(match);
 
-      let shareInfo = await drive.api.getShareInfo(parsedCode);
-      if (shareInfo) {
-        if (Array.isArray(shareInfo)) {
-          shareInfo = {
-            list: shareInfo,
-            ...parsedCode,
-          };
-        } else {
-          shareInfo = {
-            ...shareInfo,
-            ...parsedCode,
-          };
+      if (this.is115Drive(drive)) {
+        let shareInfo = await drive.api.getShareInfo(
+          parsedCode as { shareCode: string; receiveCode: string }
+        );
+        if (shareInfo) {
+          if (Array.isArray(shareInfo)) {
+            shareInfo = {
+              list: shareInfo,
+              ...parsedCode,
+            };
+          } else {
+            shareInfo = {
+              ...shareInfo,
+              ...parsedCode,
+            };
+          }
         }
-      }
-      const params = drive.getSaveParams(shareInfo, folderId);
-      const result = await drive.api.saveFile(params);
+        const params = drive.getSaveParams(shareInfo, folderId);
+        const result = await drive.api.saveFile(params);
 
-      if (result.code === 0) {
-        ElMessage.success(`${drive.name} 转存成功`);
+        if (result.code === 0) {
+          ElMessage.success(`${drive.name} 转存成功`);
+        } else {
+          ElMessage.error(result.message);
+        }
       } else {
-        ElMessage.error(result.message);
+        let shareInfo = this.is115Drive(drive)
+          ? await drive.api.getShareInfo(parsedCode as { shareCode: string; receiveCode: string })
+          : await drive.api.getShareInfo(parsedCode as { pwdId: string });
+        if (shareInfo) {
+          if (Array.isArray(shareInfo)) {
+            shareInfo = {
+              list: shareInfo,
+            };
+          }
+        }
+        const params = drive.getSaveParams(shareInfo, folderId);
+        const result = await drive.api.saveFile(params);
+
+        if (result.code === 0) {
+          ElMessage.success(`${drive.name} 转存成功`);
+        } else {
+          ElMessage.error(result.message);
+        }
       }
     },
 
@@ -202,7 +239,12 @@ export const useResourceStore = defineStore("resource", {
         if (!match) throw new Error("链接解析失败");
 
         const parsedCode = matchedDrive.parseShareCode(match);
-        let shareInfo = await matchedDrive.api.getShareInfo(parsedCode);
+        let shareInfo = this.is115Drive(matchedDrive)
+          ? await matchedDrive.api.getShareInfo(
+              parsedCode as { shareCode: string; receiveCode: string }
+            )
+          : await matchedDrive.api.getShareInfo(parsedCode as { pwdId: string });
+
         if (Array.isArray(shareInfo)) {
           shareInfo = {
             list: shareInfo,
@@ -245,6 +287,14 @@ export const useResourceStore = defineStore("resource", {
     handleError(message: string, error: unknown): void {
       console.error(message, error);
       ElMessage.error(error instanceof Error ? error.message : message);
+    },
+
+    is115Drive(
+      drive:
+        | CloudDriveConfig<{ shareCode: string; receiveCode: string }, Save115FileParams>
+        | CloudDriveConfig<{ pwdId: string }, SaveQuarkFileParams>
+    ): drive is CloudDriveConfig<{ shareCode: string; receiveCode: string }, Save115FileParams> {
+      return drive.type === "pan115";
     },
   },
 });

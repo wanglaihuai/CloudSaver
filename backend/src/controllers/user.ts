@@ -12,7 +12,7 @@ const isValidInput = (input: string): boolean => {
   return regex.test(input);
 };
 export const userController = {
-  async register(req: Request, res: Response) {
+  async register(req: Request, res: Response): Promise<void> {
     const { username, password, registerCode } = req.body;
     const globalSetting = await GlobalSetting.findOne();
     const registerCodeList = [
@@ -39,12 +39,12 @@ export const userController = {
         data: user,
         message: "用户注册成功",
       });
-    } catch (error: any) {
-      sendError(res, { message: error.message || "用户注册失败" });
+    } catch (error) {
+      sendError(res, { message: (error as Error).message || "用户注册失败" });
     }
   },
 
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response): Promise<void> {
     const { username, password } = req.body;
     const user = await User.findOne({ where: { username } });
     if (!user || !(await bcrypt.compare(password, user.password))) {

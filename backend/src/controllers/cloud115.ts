@@ -1,15 +1,14 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { Cloud115Service } from "../services/Cloud115Service";
 import { sendSuccess, sendError } from "../utils/response";
 import UserSetting from "../models/UserSetting";
 
 const cloud115 = new Cloud115Service();
-const setCookie = async (req: Request) => {
+const setCookie = async (req: Request): Promise<void> => {
   const userId = req.user?.userId;
   const userSetting = await UserSetting.findOne({
     where: { userId },
   });
-  console.log(userSetting?.dataValues.cloud115Cookie);
   if (userSetting && userSetting.dataValues.cloud115Cookie) {
     cloud115.setCookie(userSetting.dataValues.cloud115Cookie);
   } else {
@@ -18,7 +17,7 @@ const setCookie = async (req: Request) => {
 };
 
 export const cloud115Controller = {
-  async getShareInfo(req: Request, res: Response, next: NextFunction) {
+  async getShareInfo(req: Request, res: Response): Promise<void> {
     try {
       const { shareCode, receiveCode } = req.query;
       await setCookie(req);
@@ -30,7 +29,7 @@ export const cloud115Controller = {
     }
   },
 
-  async getFolderList(req: Request, res: Response, next: NextFunction) {
+  async getFolderList(req: Request, res: Response): Promise<void> {
     try {
       const { parentCid } = req.query;
       await setCookie(req);
@@ -41,7 +40,7 @@ export const cloud115Controller = {
     }
   },
 
-  async saveFile(req: Request, res: Response, next: NextFunction) {
+  async saveFile(req: Request, res: Response): Promise<void> {
     try {
       const { shareCode, receiveCode, fileId, folderId } = req.body;
       await setCookie(req);

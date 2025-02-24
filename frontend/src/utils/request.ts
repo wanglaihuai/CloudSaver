@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
 import { ElMessage } from "element-plus";
 import { RequestResult } from "../types/response";
 
@@ -49,13 +49,17 @@ axiosInstance.interceptors.response.use(
 );
 
 const request = {
-  get: <T>(
-    url: string,
-    config?: Record<string, any>
-  ): Promise<RequestResult<T>> => {
+  get: <T>(url: string, config?: AxiosRequestConfig): Promise<RequestResult<T>> => {
     return axiosInstance.get(url, { ...config });
   },
-  post: axiosInstance.post,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  post: <T, D = any>(
+    url: string,
+    data: D,
+    config?: AxiosRequestConfig
+  ): Promise<RequestResult<T>> => {
+    return axiosInstance.post(url, data, { ...config });
+  },
   put: axiosInstance.put,
   delete: axiosInstance.delete,
 };

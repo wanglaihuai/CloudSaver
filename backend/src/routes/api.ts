@@ -19,7 +19,6 @@ router.use("/setting", settingRoutes);
 
 // 资源搜索
 router.get("/search", resourceController.search);
-router.get("/rssSearch", resourceController.rssSearch);
 
 // 115网盘相关
 router.get("/cloud115/share-info", cloud115Controller.getShareInfo);

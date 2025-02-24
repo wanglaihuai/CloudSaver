@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { QuarkService } from "../services/QuarkService";
 import { sendSuccess, sendError } from "../utils/response";
 import UserSetting from "../models/UserSetting";
 
 const quark = new QuarkService();
 
-const setCookie = async (req: Request) => {
+const setCookie = async (req: Request): Promise<void> => {
   const userId = req.user?.userId;
   const userSetting = await UserSetting.findOne({
     where: { userId },
@@ -18,7 +18,7 @@ const setCookie = async (req: Request) => {
 };
 
 export const quarkController = {
-  async getShareInfo(req: Request, res: Response, next: NextFunction) {
+  async getShareInfo(req: Request, res: Response): Promise<void> {
     try {
       const { pwdId, passcode } = req.query;
       await setCookie(req);
@@ -29,7 +29,7 @@ export const quarkController = {
     }
   },
 
-  async getFolderList(req: Request, res: Response, next: NextFunction) {
+  async getFolderList(req: Request, res: Response): Promise<void> {
     try {
       const { parentCid } = req.query;
       await setCookie(req);
@@ -40,7 +40,7 @@ export const quarkController = {
     }
   },
 
-  async saveFile(req: Request, res: Response, next: NextFunction) {
+  async saveFile(req: Request, res: Response): Promise<void> {
     try {
       await setCookie(req);
       const result = await quark.saveSharedFile(req.body);
