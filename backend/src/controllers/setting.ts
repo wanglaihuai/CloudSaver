@@ -3,6 +3,7 @@ import { sendSuccess, sendError } from "../utils/response";
 import Searcher from "../services/Searcher";
 import UserSetting from "../models/UserSetting";
 import GlobalSetting from "../models/GlobalSetting";
+import { iamgesInstance } from "./teleImages";
 
 export const settingController = {
   async get(req: Request, res: Response): Promise<void> {
@@ -45,6 +46,7 @@ export const settingController = {
         await UserSetting.update(userSettings, { where: { userId } });
         if (role === 1 && globalSetting) await GlobalSetting.update(globalSetting, { where: {} });
         Searcher.updateAxiosInstance();
+        iamgesInstance.updateProxyConfig();
         sendSuccess(res, {
           message: "保存成功",
         });
