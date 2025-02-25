@@ -272,14 +272,14 @@ export const useResourceStore = defineStore("resource", {
     },
 
     // 获取资源列表并选择
-    async getResourceListAndSelect(resource: ResourceItem): Promise<void> {
+    async getResourceListAndSelect(resource: ResourceItem): Promise<boolean> {
       const { cloudType } = resource;
       const drive = CLOUD_DRIVES.find((x) => x.type === cloudType);
       if (!drive) {
-        return;
+        return false;
       }
       const link = resource.cloudLinks.find((link) => drive.regex.test(link));
-      if (!link) return;
+      if (!link) return false;
 
       const match = link.match(drive.regex);
       if (!match) throw new Error("链接解析失败");
@@ -296,6 +296,7 @@ export const useResourceStore = defineStore("resource", {
           ? await drive.api.getShareInfo(parsedCode as { shareCode: string; receiveCode: string })
           : await drive.api.getShareInfo(parsedCode as { pwdId: string });
       }
+      this.setLoadTree(false);
       if (shareInfo) {
         if (Array.isArray(shareInfo)) {
           shareInfo = {
@@ -308,10 +309,13 @@ export const useResourceStore = defineStore("resource", {
             ...parsedCode,
           };
         }
+        this.shareInfo = shareInfo;
+        this.setSelectedResource(this.shareInfo.list);
+        return true;
+      } else {
+        ElMessage.error("获取资源信息失败,请先检查cookie!");
+        return false;
       }
-      this.shareInfo = shareInfo;
-      this.setSelectedResource(this.shareInfo.list);
-      this.setLoadTree(false);
     },
 
     // 统一错误处理

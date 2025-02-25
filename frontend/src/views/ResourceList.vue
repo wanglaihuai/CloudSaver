@@ -117,11 +117,13 @@ const saveDialogMap = {
   },
 };
 
-const handleSave = (resource: ResourceItem) => {
+const handleSave = async (resource: ResourceItem) => {
   currentResource.value = resource;
   saveDialogVisible.value = true;
   saveDialogStep.value = 1;
-  resourceStore.getResourceListAndSelect(currentResource.value);
+  if (!(await resourceStore.getResourceListAndSelect(currentResource.value))) {
+    saveDialogVisible.value = false;
+  }
 };
 
 const handleFolderSelect = async (folderId: string) => {
@@ -156,7 +158,6 @@ const handleLoadMore = (channelId: string) => {
 };
 
 const searchMovieforTag = (tag: string) => {
-  console.log("iiii");
   router.push({ path: "/", query: { keyword: tag } });
 };
 </script>
