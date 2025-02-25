@@ -70,7 +70,6 @@ export class Cloud115Service {
         cid: "",
       },
     });
-
     if (response.data?.state && response.data.data?.list?.length > 0) {
       return {
         data: response.data.data.list.map((item: Cloud115ListItem) => ({
@@ -91,7 +90,7 @@ export class Cloud115Service {
         aid: 1,
         cid: parentCid,
         o: "user_ptime",
-        asc: 0,
+        asc: 1,
         offset: 0,
         show_dir: 1,
         limit: 50,
@@ -99,10 +98,12 @@ export class Cloud115Service {
         format: "json",
         star: 0,
         suffix: "",
-        natsort: 1,
+        natsort: 0,
+        snap: 0,
+        record_open_time: 1,
+        fc_mix: 0,
       },
     });
-
     if (response.data?.state) {
       return {
         data: response.data.data
