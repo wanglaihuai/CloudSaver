@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 
-export const validateRequest = (requiredParams: string[]) => {
+export const validateRequest = (
+  requiredParams: string[]
+): ((req: Request, res: Response, next: NextFunction) => Response | void) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const missingParams = requiredParams.filter((param) => !req.query[param] && !req.body[param]);
     if (missingParams.length > 0) {

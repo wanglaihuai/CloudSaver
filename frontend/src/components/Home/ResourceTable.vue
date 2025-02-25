@@ -13,8 +13,8 @@
           <el-table-column label="图片" width="180">
             <template #default="{ row }">
               <el-image
-                class="table-item-image"
                 v-if="row.image"
+                class="table-item-image"
                 :src="`/tele-images/?url=${encodeURIComponent(row.image as string)}`"
                 hide-on-click-modal
                 :preview-src-list="[
@@ -42,17 +42,17 @@
           </el-table-column>
           <el-table-column prop="title" label="描述">
             <template #default="{ row }">
-              <div v-html="row.content" class="item-description"></div>
+              <div class="item-description" v-html="row.content"></div>
             </template>
           </el-table-column>
           <el-table-column prop="tags" label="标签">
             <template #default="{ row }">
-              <div class="tags-list" v-if="row.tags.length > 0">
+              <div v-if="row.tags.length > 0" class="tags-list">
                 <span>标签：</span>
                 <el-tag
                   v-for="item in row.tags"
-                  class="resource_tag"
                   :key="item"
+                  class="resource_tag"
                   @click="searchMovieforTag(item)"
                 >
                   {{ item }}
@@ -102,96 +102,97 @@
 </template>
 
 <script setup lang="ts">
-  import { useResourceStore } from "@/stores/resource";
-  import type { Resource, TagColor } from "@/types";
-  import { computed } from "vue";
+import { useResourceStore } from "@/stores/resource";
+import type { Resource, TagColor } from "@/types";
+import { computed } from "vue";
 
-  const store = useResourceStore();
+const store = useResourceStore();
 
-  const emit = defineEmits(["save", "loadMore", "searchMovieforTag"]);
+const emit = defineEmits(["save", "loadMore", "searchMovieforTag"]);
 
-  const location = computed(() => window.location);
+const location = computed(() => window.location);
 
-  const handleSave = (resource: Resource) => {
-    emit("save", resource);
-  };
+const handleSave = (resource: Resource) => {
+  emit("save", resource);
+};
 
-  // 添加加载更多处理函数
-  const handleLoadMore = (channelId: string) => {
-    emit("loadMore", channelId);
-  };
+// 添加加载更多处理函数
+const handleLoadMore = (channelId: string) => {
+  emit("loadMore", channelId);
+};
 
-  const searchMovieforTag = (tag: string) => {
-    emit("searchMovieforTag", tag);
-  };
+const searchMovieforTag = (tag: string) => {
+  emit("searchMovieforTag", tag);
+};
 </script>
 
 <style scoped>
-  .resource-list-table {
-    border-radius: 15px;
-  }
+.resource-list-table {
+  border-radius: 15px;
+}
 
-  .group-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .channel-logo {
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-    border-radius: 50%;
-    overflow: hidden;
-  }
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.channel-logo {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 50%;
+  overflow: hidden;
+}
 
-  .table-item-image {
-    border-radius: 20px;
-    width: 100%;
-    height: 220px;
-  }
+.table-item-image {
+  border-radius: 20px;
+  width: 100%;
+  height: 220px;
+}
 
-  .item-count {
-    color: #909399;
-    font-size: 0.9em;
-  }
-  .tags-list {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-  .resource_tag {
-    cursor: pointer;
-    margin-right: 10px;
-    margin-bottom: 5px;
-  }
-  .item-description {
-    max-width: 100%;
-    margin: 15px 0;
-    -webkit-box-orient: vertical;
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    overflow: hidden;
-    white-space: all;
-  }
+.item-count {
+  color: #909399;
+  font-size: 0.9em;
+}
+.tags-list {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.resource_tag {
+  cursor: pointer;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+.item-description {
+  max-width: 100%;
+  margin: 15px 0;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  line-clamp: 4;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  white-space: all;
+}
 
-  :deep(.el-table__expand-column) {
-    .cell {
-      padding: 0 !important;
-    }
+:deep(.el-table__expand-column) {
+  .cell {
+    padding: 0 !important;
   }
+}
 
-  :deep(.el-table__expanded-cell) {
-    padding: 20px !important;
-  }
+:deep(.el-table__expanded-cell) {
+  padding: 20px !important;
+}
 
-  :deep(.el-table__expand-icon) {
-    height: 23px;
-    line-height: 23px;
-  }
-  .load-more {
-    display: flex;
-    justify-content: center;
-    padding: 16px 0;
-  }
+:deep(.el-table__expand-icon) {
+  height: 23px;
+  line-height: 23px;
+}
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
 </style>

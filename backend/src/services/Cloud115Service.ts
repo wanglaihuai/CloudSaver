@@ -4,6 +4,23 @@ import { Logger } from "../utils/logger";
 import { config } from "../config/index";
 import { ShareInfoResponse } from "../types/cloud115";
 
+interface Cloud115ListItem {
+  cid: string;
+  n: string;
+  s: number;
+}
+
+interface Cloud115FolderItem {
+  cid: string;
+  n: string;
+  ns: number;
+}
+
+interface Cloud115PathItem {
+  cid: string;
+  name: string;
+}
+
 export class Cloud115Service {
   private api: AxiosInstance;
   private cookie: string = "";
@@ -39,7 +56,7 @@ export class Cloud115Service {
     });
   }
 
-  public setCookie(cookie: string) {
+  public setCookie(cookie: string): void {
     this.cookie = cookie;
   }
 
@@ -56,7 +73,7 @@ export class Cloud115Service {
 
     if (response.data?.state && response.data.data?.list?.length > 0) {
       return {
-        data: response.data.data.list.map((item: any) => ({
+        data: response.data.data.list.map((item: Cloud115ListItem) => ({
           fileId: item.cid,
           fileName: item.n,
           fileSize: item.s,
@@ -66,7 +83,9 @@ export class Cloud115Service {
     throw new Error("未找到文件信息");
   }
 
-  async getFolderList(parentCid = "0") {
+  async getFolderList(
+    parentCid = "0"
+  ): Promise<{ data: { cid: string; name: string; path: Cloud115PathItem[] }[] }> {
     const response = await this.api.get("/files", {
       params: {
         aid: 1,
@@ -87,8 +106,8 @@ export class Cloud115Service {
     if (response.data?.state) {
       return {
         data: response.data.data
-          .filter((item: any) => item.cid && !!item.ns)
-          .map((folder: any) => ({
+          .filter((item: Cloud115FolderItem) => item.cid && !!item.ns)
+          .map((folder: Cloud115FolderItem) => ({
             cid: folder.cid,
             name: folder.n,
             path: response.data.path,
@@ -105,7 +124,7 @@ export class Cloud115Service {
     shareCode: string;
     receiveCode: string;
     fileId: string;
-  }) {
+  }): Promise<{ message: string; data: unknown }> {
     const param = new URLSearchParams({
       cid: params.cid,
       user_id: config.cloud115.userId,

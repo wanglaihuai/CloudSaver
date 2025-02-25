@@ -27,7 +27,7 @@ export class Searcher {
     this.initializeAxiosInstance();
   }
 
-  private async initializeAxiosInstance(isUpdate = false) {
+  private async initializeAxiosInstance(isUpdate = false): Promise<void> {
     let settings = null;
     if (isUpdate) {
       settings = await GlobalSetting.findOne();
@@ -78,7 +78,6 @@ export class Searcher {
 
   async searchAll(keyword: string, channelId?: string, messageId?: string) {
     const allResults = [];
-    const totalChannels = config.rss.channels.length;
 
     const channelList = channelId
       ? config.rss.channels.filter((channel) => channel.id === channelId)
@@ -90,7 +89,7 @@ export class Searcher {
         const messageIdparams = messageId ? `before=${messageId}` : "";
         const url = `/${channel.id}${keyword ? `?q=${encodeURIComponent(keyword)}&${messageIdparams}` : `?${messageIdparams}`}`;
         console.log(`Searching in channel ${channel.name} with URL: ${url}`);
-        const results = await this.searchInWeb(url, channel.id);
+        const results = await this.searchInWeb(url);
         console.log(`Found ${results.items.length} items in channel ${channel.name}`);
         if (results.items.length > 0) {
           const channelResults = results.items
@@ -120,7 +119,7 @@ export class Searcher {
     };
   }
 
-  async searchInWeb(url: string, channelId: string) {
+  async searchInWeb(url: string) {
     try {
       if (!this.axiosInstance) {
         throw new Error("Axios instance is not initialized");

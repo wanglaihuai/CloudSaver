@@ -11,8 +11,8 @@
       </div>
       <div class="header_right">
         <el-icon
-          class="type_icon"
           v-if="userStore.displayStyle === 'card'"
+          class="type_icon"
           @click="setDisplayStyle('table')"
           ><Menu
         /></el-icon>
@@ -20,19 +20,19 @@
       </div>
     </div>
     <ResourceTable
-      @loadMore="handleLoadMore"
-      @searchMovieforTag="searchMovieforTag"
-      @save="handleSave"
       v-if="userStore.displayStyle === 'table'"
+      @load-more="handleLoadMore"
+      @search-moviefor-tag="searchMovieforTag"
+      @save="handleSave"
     ></ResourceTable>
     <ResourceCard
-      @loadMore="handleLoadMore"
-      @searchMovieforTag="searchMovieforTag"
-      @save="handleSave"
       v-else
+      @load-more="handleLoadMore"
+      @search-moviefor-tag="searchMovieforTag"
+      @save="handleSave"
     ></ResourceCard>
     <el-empty v-if="resourceStore.resources.length === 0" :image-size="200" />
-    <el-dialog v-model="folderDialogVisible" title="选择保存目录" v-if="currentResource">
+    <el-dialog v-if="currentResource" v-model="folderDialogVisible" title="选择保存目录">
       <template #header="{ titleId }">
         <div class="my-header">
           <div :id="titleId">
@@ -49,9 +49,9 @@
       </template>
       <folder-select
         v-if="folderDialogVisible"
+        :cloud-type="currentResource.cloudType"
         @select="handleFolderSelect"
         @close="folderDialogVisible = false"
-        :cloudType="currentResource.cloudType"
       />
       <div class="dialog-footer">
         <el-button @click="folderDialogVisible = false">取消</el-button>
@@ -62,125 +62,125 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from "vue";
-  import { useResourceStore } from "@/stores/resource";
-  import { useUserSettingStore } from "@/stores/userSetting";
-  import FolderSelect from "@/components/Home/FolderSelect.vue";
-  import ResourceTable from "@/components/Home/ResourceTable.vue";
-  import type { ResourceItem, TagColor } from "@/types";
-  import ResourceCard from "@/components/Home/ResourceCard.vue";
-  import { useRouter } from "vue-router";
-  const router = useRouter();
+import { ref } from "vue";
+import { useResourceStore } from "@/stores/resource";
+import { useUserSettingStore } from "@/stores/userSetting";
+import FolderSelect from "@/components/Home/FolderSelect.vue";
+import ResourceTable from "@/components/Home/ResourceTable.vue";
+import type { ResourceItem, TagColor } from "@/types";
+import ResourceCard from "@/components/Home/ResourceCard.vue";
+import { useRouter } from "vue-router";
+const router = useRouter();
 
-  const resourceStore = useResourceStore();
-  const userStore = useUserSettingStore();
-  const folderDialogVisible = ref(false);
-  const currentResource = ref<ResourceItem | null>(null);
-  const currentFolderId = ref<string | null>(null);
+const resourceStore = useResourceStore();
+const userStore = useUserSettingStore();
+const folderDialogVisible = ref(false);
+const currentResource = ref<ResourceItem | null>(null);
+const currentFolderId = ref<string | null>(null);
 
-  const refreshResources = async () => {
-    resourceStore.searchResources("", false);
-  };
+const refreshResources = async () => {
+  resourceStore.searchResources("", false);
+};
 
-  const handleSave = (resource: ResourceItem) => {
-    currentResource.value = resource;
-    folderDialogVisible.value = true;
-  };
+const handleSave = (resource: ResourceItem) => {
+  currentResource.value = resource;
+  folderDialogVisible.value = true;
+};
 
-  const handleFolderSelect = async (folderId: string) => {
-    if (!currentResource.value) return;
-    currentFolderId.value = folderId;
-  };
+const handleFolderSelect = async (folderId: string) => {
+  if (!currentResource.value) return;
+  currentFolderId.value = folderId;
+};
 
-  const handleSaveBtnClick = async () => {
-    if (!currentResource.value || !currentFolderId.value) return;
-    folderDialogVisible.value = false;
-    await resourceStore.saveResource(currentResource.value, currentFolderId.value);
-  };
-  const setDisplayStyle = (style: string) => {
-    console.log(userStore);
-    userStore.setDisplayStyle(style as "card" | "table");
-  };
-  // 添加加载更多处理函数
-  const handleLoadMore = (channelId: string) => {
-    resourceStore.searchResources("", true, channelId);
-  };
+const handleSaveBtnClick = async () => {
+  if (!currentResource.value || !currentFolderId.value) return;
+  folderDialogVisible.value = false;
+  await resourceStore.saveResource(currentResource.value, currentFolderId.value);
+};
+const setDisplayStyle = (style: string) => {
+  console.log(userStore);
+  userStore.setDisplayStyle(style as "card" | "table");
+};
+// 添加加载更多处理函数
+const handleLoadMore = (channelId: string) => {
+  resourceStore.searchResources("", true, channelId);
+};
 
-  const searchMovieforTag = (tag: string) => {
-    console.log("iiii");
-    router.push({ path: "/", query: { keyword: tag } });
-  };
+const searchMovieforTag = (tag: string) => {
+  console.log("iiii");
+  router.push({ path: "/", query: { keyword: tag } });
+};
 </script>
 
 <style scoped>
-  .resource-list {
-    /* margin-top: 20px; */
-    position: relative;
-  }
-  .resource-list__header {
-    height: 48px;
-    background-color: var(--theme-other_background);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-    border-radius: 15px;
-    padding: 0 15px;
-  }
-  .header_right {
-    cursor: pointer;
-  }
-  .type_icon {
-    width: 48px;
-    height: 48px;
-    size: 48px;
-  }
-  .refresh_btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    .item-count {
-      color: #909399;
-      font-size: 0.9em;
-    }
-  }
-
-  .dialog-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
-  .group-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
+.resource-list {
+  /* margin-top: 20px; */
+  position: relative;
+}
+.resource-list__header {
+  height: 48px;
+  background-color: var(--theme-other_background);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  padding: 0 15px;
+}
+.header_right {
+  cursor: pointer;
+}
+.type_icon {
+  width: 48px;
+  height: 48px;
+  size: 48px;
+}
+.refresh_btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   .item-count {
     color: #909399;
     font-size: 0.9em;
   }
+}
 
-  :deep(.el-table__expand-column) {
-    .cell {
-      padding: 0 !important;
-    }
-  }
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
 
-  :deep(.el-table__expanded-cell) {
-    padding: 20px !important;
-  }
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-  :deep(.el-table__expand-icon) {
-    height: 23px;
-    line-height: 23px;
+.item-count {
+  color: #909399;
+  font-size: 0.9em;
+}
+
+:deep(.el-table__expand-column) {
+  .cell {
+    padding: 0 !important;
   }
-  .load-more {
-    display: flex;
-    justify-content: center;
-    padding: 16px 0;
-  }
+}
+
+:deep(.el-table__expanded-cell) {
+  padding: 20px !important;
+}
+
+:deep(.el-table__expand-icon) {
+  height: 23px;
+  line-height: 23px;
+}
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
 </style>

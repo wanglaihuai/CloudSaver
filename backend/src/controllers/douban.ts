@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import DoubanService from "../services/DoubanService";
 import { sendSuccess, sendError } from "../utils/response";
 
 const doubanService = new DoubanService();
 
 export const doubanController = {
-  async getDoubanHotList(req: Request, res: Response, next: NextFunction) {
+  async getDoubanHotList(req: Request, res: Response): Promise<void> {
     try {
       const { type = "movie", tag = "热门", page_limit = "50", page_start = "0" } = req.query;
       const result = await doubanService.getHotList({

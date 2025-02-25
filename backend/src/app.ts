@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 
 app.use("/", routes);
 
-const initializeGlobalSettings = async () => {
+const initializeGlobalSettings = async (): Promise<void> => {
   const settings = await GlobalSetting.findOne();
   if (!settings) {
     await GlobalSetting.create({

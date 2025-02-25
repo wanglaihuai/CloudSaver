@@ -2,6 +2,23 @@ import { AxiosInstance, AxiosHeaders } from "axios";
 import { Logger } from "../utils/logger";
 import { createAxiosInstance } from "../utils/axiosInstance";
 
+interface QuarkShareInfo {
+  stoken?: string;
+  pwdId?: string;
+  list: {
+    fid: string;
+    file_name: string;
+    file_type: number;
+    share_fid_token: string;
+  }[];
+}
+
+interface QuarkFolderItem {
+  fid: string;
+  file_name: string;
+  file_type: number;
+}
+
 export class QuarkService {
   private api: AxiosInstance;
   private cookie: string = "";
@@ -34,11 +51,11 @@ export class QuarkService {
     });
   }
 
-  public setCookie(cookie: string) {
+  public setCookie(cookie: string): void {
     this.cookie = cookie;
   }
 
-  async getShareInfo(pwdId: string, passcode = "") {
+  async getShareInfo(pwdId: string, passcode = ""): Promise<{ data: QuarkShareInfo }> {
     const response = await this.api.post(
       `/1/clouddrive/share/sharepage/token?pr=ucpro&fr=pc&uc_param_str=&__dt=994&__t=${Date.now()}`,
       {
@@ -49,7 +66,7 @@ export class QuarkService {
     if (response.data?.status === 200 && response.data.data) {
       const fileInfo = response.data.data;
       if (fileInfo.stoken) {
-        let res = await this.getShareList(pwdId, fileInfo.stoken);
+        const res = await this.getShareList(pwdId, fileInfo.stoken);
         return {
           data: res,
         };
@@ -58,7 +75,7 @@ export class QuarkService {
     throw new Error("获取夸克分享信息失败");
   }
 
-  async getShareList(pwdId: string, stoken: string) {
+  async getShareList(pwdId: string, stoken: string): Promise<QuarkShareInfo> {
     const response = await this.api.get("/1/clouddrive/share/sharepage/detail", {
       params: {
         pr: "ucpro",
@@ -80,8 +97,8 @@ export class QuarkService {
     });
     if (response.data?.data) {
       const list = response.data.data.list
-        .filter((item: any) => item.fid)
-        .map((folder: any) => ({
+        .filter((item: QuarkShareInfo["list"][0]) => item.fid)
+        .map((folder: QuarkShareInfo["list"][0]) => ({
           fileId: folder.fid,
           fileName: folder.file_name,
           fileIdToken: folder.share_fid_token,
@@ -89,7 +106,7 @@ export class QuarkService {
       return {
         list,
         pwdId,
-        stoken: stoken,
+        stoken,
       };
     } else {
       return {
@@ -98,7 +115,9 @@ export class QuarkService {
     }
   }
 
-  async getFolderList(parentCid = "0") {
+  async getFolderList(
+    parentCid = "0"
+  ): Promise<{ data: { cid: string; name: string; path: [] }[] }> {
     const response = await this.api.get("/1/clouddrive/file/sort", {
       params: {
         pr: "ucpro",
@@ -114,10 +133,10 @@ export class QuarkService {
         __t: Date.now(),
       },
     });
-    if (response.data?.data && response.data.data.list.length) {
+    if (response.data?.data && response.data.data.list) {
       const data = response.data.data.list
-        .filter((item: any) => item.fid && item.file_type === 0)
-        .map((folder: any) => ({
+        .filter((item: QuarkFolderItem) => item.fid && item.file_type === 0)
+        .map((folder: QuarkFolderItem) => ({
           cid: folder.fid,
           name: folder.file_name,
           path: [],
@@ -140,7 +159,7 @@ export class QuarkService {
     stoken: string;
     pdir_fid: string;
     scene: string;
-  }) {
+  }): Promise<{ message: string; data: unknown }> {
     try {
       const response = await this.api.post(
         `/1/clouddrive/share/sharepage/save?pr=ucpro&fr=pc&uc_param_str=&__dt=208097&__t=${Date.now()}`,

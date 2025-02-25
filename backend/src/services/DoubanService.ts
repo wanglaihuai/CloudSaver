@@ -1,6 +1,15 @@
 import { AxiosHeaders, AxiosInstance } from "axios";
 import { createAxiosInstance } from "../utils/axiosInstance";
 
+interface DoubanSubject {
+  id: string;
+  title: string;
+  rate: string;
+  cover: string;
+  url: string;
+  is_new: boolean;
+}
+
 class DoubanService {
   private baseUrl: string;
   private api: AxiosInstance;
@@ -28,7 +37,12 @@ class DoubanService {
     );
   }
 
-  async getHotList(params: { type: string; tag: string; page_limit: string; page_start: string }) {
+  async getHotList(params: {
+    type: string;
+    tag: string;
+    page_limit: string;
+    page_start: string;
+  }): Promise<{ data: DoubanSubject[] }> {
     try {
       const response = await this.api.get("/search_subjects", {
         params: params,
