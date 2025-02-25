@@ -31,6 +31,9 @@ import { quarkApi } from "@/api/quark";
 import type { TreeInstance } from "element-plus";
 import type { Folder } from "@/types";
 import { type RequestResult } from "@/types/response";
+import { useResourceStore } from "@/stores/resource";
+
+const resourceStore = useResourceStore();
 import { ElMessage } from "element-plus";
 
 const props = defineProps({
@@ -59,10 +62,12 @@ const cloudTypeApiMap = {
   quark: quarkApi,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const loadNode = async (node: any, resolve: (list: Folder[]) => void) => {
   const api = cloudTypeApiMap[props.cloudType as keyof typeof cloudTypeApiMap];
   try {
     let res: RequestResult<Folder[]> = { code: 0, data: [] as Folder[], message: "" };
+    resourceStore.setLoadTree(true);
     if (node.level === 0) {
       if (api.getFolderList) {
         // 使用类型保护检查方法是否存在
@@ -79,10 +84,12 @@ const loadNode = async (node: any, resolve: (list: Folder[]) => void) => {
     } else {
       throw new Error(res.message);
     }
+    resourceStore.setLoadTree(false);
   } catch (error) {
     ElMessage.error(error instanceof Error ? `${error.message}` : "获取目录失败");
     // 关闭模态框
     emit("close");
+    resourceStore.setLoadTree(false);
     resolve([]);
   }
 };

@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AsideMenu: typeof import('./src/components/AsideMenu.vue')['default']
+    copy: typeof import('./src/components/Home/FolderSelect copy.vue')['default']
     DoubanMovie: typeof import('./src/components/Home/DoubanMovie.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
@@ -39,6 +40,7 @@ declare module 'vue' {
     ElTree: typeof import('element-plus/es')['ElTree']
     FolderSelect: typeof import('./src/components/Home/FolderSelect.vue')['default']
     ResourceCard: typeof import('./src/components/Home/ResourceCard.vue')['default']
+    ResourceSelect: typeof import('./src/components/Home/ResourceSelect.vue')['default']
     ResourceTable: typeof import('./src/components/Home/ResourceTable.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

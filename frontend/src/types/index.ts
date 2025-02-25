@@ -26,7 +26,7 @@ export interface Resource {
 export interface ShareInfo {
   fileId: string;
   fileName: string;
-  fileSize: number;
+  fileSize?: number;
   fileIdToken?: string;
 }
 
@@ -36,6 +36,7 @@ export interface ShareInfoResponse {
   stoken?: string;
   shareCode?: string;
   receiveCode?: string;
+  fileSize?: number;
 }
 
 export interface Folder {
