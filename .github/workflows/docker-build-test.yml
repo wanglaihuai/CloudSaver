@@ -1,7 +1,7 @@
-name: Build and Push Docker Image for Test
+name: Build and Push Multi-Arch Docker Image for Test
 on:
   push:
-   branches:
+    branches:
       - dev
   workflow_dispatch:  # 添加手动触发
 jobs:
@@ -28,10 +28,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 构建并推送 Docker 镜像
+      - name: 设置 QEMU 支持多架构
+        uses: docker/setup-qemu-action@v2
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: 构建并推送多架构 Docker 镜像
         uses: docker/build-push-action@v4
         with:
           context: .
+          platforms: linux/amd64,linux/arm64  # 指定架构：x86_64 和 ARM64
           push: true
           tags: |
             ghcr.io/${{ env.LOWER_NAME }}:test
