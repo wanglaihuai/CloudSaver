@@ -5,6 +5,7 @@ import { createAxiosInstance } from "../utils/axiosInstance";
 interface QuarkShareInfo {
   stoken?: string;
   pwdId?: string;
+  fileSize?: number;
   list: {
     fid: string;
     file_name: string;
@@ -107,6 +108,7 @@ export class QuarkService {
         list,
         pwdId,
         stoken,
+        fileSize: response.data.data.share?.size || 0,
       };
     } else {
       return {

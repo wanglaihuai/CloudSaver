@@ -32,7 +32,11 @@
       @save="handleSave"
     ></ResourceCard>
     <el-empty v-if="resourceStore.resources.length === 0" :image-size="200" />
-    <el-dialog v-if="currentResource" v-model="folderDialogVisible" title="选择保存目录">
+    <el-dialog
+      v-if="currentResource"
+      v-model="saveDialogVisible"
+      :title="saveDialogMap[saveDialogStep].title"
+    >
       <template #header="{ titleId }">
         <div class="my-header">
           <div :id="titleId">
@@ -43,19 +47,34 @@
             >
               {{ currentResource.cloudType }}
             </el-tag>
-            选择保存目录
+            {{ saveDialogMap[saveDialogStep].title }}
+            <span
+              v-if="resourceStore.shareInfo.fileSize && saveDialogStep === 1"
+              style="font-weight: bold"
+            >
+              ({{ formattedFileSize(resourceStore.shareInfo.fileSize || 0) }})
+            </span>
           </div>
         </div>
       </template>
-      <folder-select
-        v-if="folderDialogVisible"
-        :cloud-type="currentResource.cloudType"
-        @select="handleFolderSelect"
-        @close="folderDialogVisible = false"
-      />
+      <div v-loading="resourceStore.loadTree">
+        <resource-select
+          v-if="saveDialogVisible && saveDialogStep === 1"
+          :cloud-type="currentResource.cloudType"
+        />
+        <folder-select
+          v-if="saveDialogVisible && saveDialogStep === 2"
+          :cloud-type="currentResource.cloudType"
+          @select="handleFolderSelect"
+          @close="saveDialogVisible = false"
+        />
+      </div>
+
       <div class="dialog-footer">
-        <el-button @click="folderDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveBtnClick">保存</el-button>
+        <el-button @click="saveDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmClick">{{
+          saveDialogMap[saveDialogStep].buttonText
+        }}</el-button>
       </div>
     </el-dialog>
   </div>
@@ -66,25 +85,45 @@ import { ref } from "vue";
 import { useResourceStore } from "@/stores/resource";
 import { useUserSettingStore } from "@/stores/userSetting";
 import FolderSelect from "@/components/Home/FolderSelect.vue";
+import ResourceSelect from "@/components/Home/ResourceSelect.vue";
 import ResourceTable from "@/components/Home/ResourceTable.vue";
+import { formattedFileSize } from "@/utils/index";
 import type { ResourceItem, TagColor } from "@/types";
+
 import ResourceCard from "@/components/Home/ResourceCard.vue";
 import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
 const router = useRouter();
 
 const resourceStore = useResourceStore();
 const userStore = useUserSettingStore();
-const folderDialogVisible = ref(false);
+const saveDialogVisible = ref(false);
 const currentResource = ref<ResourceItem | null>(null);
 const currentFolderId = ref<string | null>(null);
+const saveDialogStep = ref<1 | 2>(1);
 
 const refreshResources = async () => {
   resourceStore.searchResources("", false);
 };
 
-const handleSave = (resource: ResourceItem) => {
+const saveDialogMap = {
+  1: {
+    title: "选择资源",
+    buttonText: "下一步",
+  },
+  2: {
+    title: "选择保存目录",
+    buttonText: "保存",
+  },
+};
+
+const handleSave = async (resource: ResourceItem) => {
   currentResource.value = resource;
-  folderDialogVisible.value = true;
+  saveDialogVisible.value = true;
+  saveDialogStep.value = 1;
+  if (!(await resourceStore.getResourceListAndSelect(currentResource.value))) {
+    saveDialogVisible.value = false;
+  }
 };
 
 const handleFolderSelect = async (folderId: string) => {
@@ -92,9 +131,21 @@ const handleFolderSelect = async (folderId: string) => {
   currentFolderId.value = folderId;
 };
 
+const handleConfirmClick = async () => {
+  if (saveDialogStep.value === 1) {
+    if (resourceStore.resourceSelect.length === 0) {
+      ElMessage.warning("请选择要保存的资源");
+      return;
+    }
+    saveDialogStep.value = 2;
+  } else {
+    handleSaveBtnClick();
+  }
+};
+
 const handleSaveBtnClick = async () => {
   if (!currentResource.value || !currentFolderId.value) return;
-  folderDialogVisible.value = false;
+  saveDialogVisible.value = false;
   await resourceStore.saveResource(currentResource.value, currentFolderId.value);
 };
 const setDisplayStyle = (style: string) => {
@@ -107,7 +158,6 @@ const handleLoadMore = (channelId: string) => {
 };
 
 const searchMovieforTag = (tag: string) => {
-  console.log("iiii");
   router.push({ path: "/", query: { keyword: tag } });
 };
 </script>

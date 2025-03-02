@@ -7,6 +7,7 @@ import type {
   ShareInfoResponse,
   Save115FileParams,
   SaveQuarkFileParams,
+  ShareInfo,
   ResourceItem,
 } from "@/types";
 import { ElMessage } from "element-plus";
@@ -101,13 +102,18 @@ export const useResourceStore = defineStore("resource", {
     },
     resources: lastResource.list,
     lastUpdateTime: lastResource.lastUpdateTime || "",
-    selectedResources: [] as Resource[],
+    shareInfo: {} as ShareInfoResponse,
+    resourceSelect: [] as ShareInfo[],
     loading: false,
     lastKeyWord: "",
     backupPlan: false,
+    loadTree: false,
   }),
 
   actions: {
+    setLoadTree(loadTree: boolean) {
+      this.loadTree = loadTree;
+    },
     // 搜索资源
     async searchResources(keyword?: string, isLoadMore = false, channelId?: string): Promise<void> {
       this.loading = true;
@@ -153,6 +159,11 @@ export const useResourceStore = defineStore("resource", {
       }
     },
 
+    // 设置选择资源
+    async setSelectedResource(resourceSelect: ShareInfo[]) {
+      this.resourceSelect = resourceSelect;
+    },
+
     // 转存资源
     async saveResource(resource: ResourceItem, folderId: string): Promise<void> {
       const savePromises: Promise<void>[] = [];
@@ -178,25 +189,12 @@ export const useResourceStore = defineStore("resource", {
       const match = link.match(drive.regex);
       if (!match) throw new Error("链接解析失败");
 
-      const parsedCode = drive.parseShareCode(match);
+      const shareInfo = {
+        ...this.shareInfo,
+        list: this.resourceSelect,
+      };
 
       if (this.is115Drive(drive)) {
-        let shareInfo = await drive.api.getShareInfo(
-          parsedCode as { shareCode: string; receiveCode: string }
-        );
-        if (shareInfo) {
-          if (Array.isArray(shareInfo)) {
-            shareInfo = {
-              list: shareInfo,
-              ...parsedCode,
-            };
-          } else {
-            shareInfo = {
-              ...shareInfo,
-              ...parsedCode,
-            };
-          }
-        }
         const params = drive.getSaveParams(shareInfo, folderId);
         const result = await drive.api.saveFile(params);
 
@@ -206,16 +204,6 @@ export const useResourceStore = defineStore("resource", {
           ElMessage.error(result.message);
         }
       } else {
-        let shareInfo = this.is115Drive(drive)
-          ? await drive.api.getShareInfo(parsedCode as { shareCode: string; receiveCode: string })
-          : await drive.api.getShareInfo(parsedCode as { pwdId: string });
-        if (shareInfo) {
-          if (Array.isArray(shareInfo)) {
-            shareInfo = {
-              list: shareInfo,
-            };
-          }
-        }
         const params = drive.getSaveParams(shareInfo, folderId);
         const result = await drive.api.saveFile(params);
 
@@ -280,6 +268,53 @@ export const useResourceStore = defineStore("resource", {
         this.handleError("解析失败，请重试", error);
       } finally {
         this.loading = false;
+      }
+    },
+
+    // 获取资源列表并选择
+    async getResourceListAndSelect(resource: ResourceItem): Promise<boolean> {
+      const { cloudType } = resource;
+      const drive = CLOUD_DRIVES.find((x) => x.type === cloudType);
+      if (!drive) {
+        return false;
+      }
+      const link = resource.cloudLinks.find((link) => drive.regex.test(link));
+      if (!link) return false;
+
+      const match = link.match(drive.regex);
+      if (!match) throw new Error("链接解析失败");
+
+      const parsedCode = drive.parseShareCode(match);
+      let shareInfo = {} as ShareInfoResponse;
+      this.setLoadTree(true);
+      if (this.is115Drive(drive)) {
+        shareInfo = await drive.api.getShareInfo(
+          parsedCode as { shareCode: string; receiveCode: string }
+        );
+      } else {
+        shareInfo = this.is115Drive(drive)
+          ? await drive.api.getShareInfo(parsedCode as { shareCode: string; receiveCode: string })
+          : await drive.api.getShareInfo(parsedCode as { pwdId: string });
+      }
+      this.setLoadTree(false);
+      if (shareInfo) {
+        if (Array.isArray(shareInfo)) {
+          shareInfo = {
+            list: shareInfo,
+            ...parsedCode,
+          };
+        } else {
+          shareInfo = {
+            ...shareInfo,
+            ...parsedCode,
+          };
+        }
+        this.shareInfo = shareInfo;
+        this.setSelectedResource(this.shareInfo.list);
+        return true;
+      } else {
+        ElMessage.error("获取资源信息失败,请先检查cookie!");
+        return false;
       }
     },
 
