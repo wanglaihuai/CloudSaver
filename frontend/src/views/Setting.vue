@@ -1,13 +1,13 @@
 <template>
-  <div class="settings">
-    <el-card v-if="settingStore.globalSetting" class="setting-card">
+  <div v-if="settingStore.globalSetting" class="settings">
+    <el-card class="setting-card">
       <h2>网络配置</h2>
       <div class="section">
         <div class="form-group">
           <label for="proxyDomain">代理域名:</label>
           <el-input
             id="proxyDomain"
-            v-model="settingStore.globalSetting.httpProxyHost"
+            v-model="globalSetting.httpProxyHost"
             class="form-input"
             type="text"
             placeholder="127.0.0.1"
@@ -17,7 +17,7 @@
           <label for="proxyPort">代理端口:</label>
           <el-input
             id="proxyPort"
-            v-model="settingStore.globalSetting.httpProxyPort"
+            v-model="globalSetting.httpProxyPort"
             class="form-input"
             type="text"
             placeholder="7890"
@@ -27,7 +27,7 @@
           <label for="AdminUserCode">管理员注册码:</label>
           <el-input-number
             id="AdminUserCode"
-            v-model="settingStore.globalSetting.AdminUserCode"
+            v-model="globalSetting.AdminUserCode"
             class="form-input"
             type="text"
             :controls="false"
@@ -39,7 +39,7 @@
           <label for="CommonUserCode">普通用户注册码:</label>
           <el-input-number
             id="CommonUserCode"
-            v-model="settingStore.globalSetting.CommonUserCode"
+            v-model="globalSetting.CommonUserCode"
             class="form-input"
             type="text"
             :precision="0"
@@ -51,7 +51,7 @@
       <div class="section">
         <div class="form-group">
           <label for="isProxyEnabled">启用代理:</label>
-          <el-switch v-model="settingStore.globalSetting.isProxyEnabled" @change="saveSettings" />
+          <el-switch v-model="globalSetting.isProxyEnabled" @change="saveSettings" />
         </div>
       </div>
     </el-card>
@@ -99,7 +99,20 @@
 
 <script setup lang="ts">
 import { useUserSettingStore } from "@/stores/userSetting";
+import { computed } from "vue";
 const settingStore = useUserSettingStore();
+
+const globalSetting = computed(
+  () =>
+    settingStore.globalSetting || {
+      httpProxyHost: "127.0.1",
+      httpProxyPort: "7890",
+      isProxyEnabled: false,
+      AdminUserCode: 230713,
+      CommonUserCode: 9527,
+    }
+);
+
 settingStore.getSettings();
 
 const saveSettings = () => {

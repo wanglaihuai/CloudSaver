@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AsideMenu: typeof import('./src/components/AsideMenu.vue')['default']
-    copy: typeof import('./src/components/Home/FolderSelect copy.vue')['default']
     DoubanMovie: typeof import('./src/components/Home/DoubanMovie.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
