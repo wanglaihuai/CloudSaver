@@ -1,10 +1,10 @@
 <template>
-  <div v-if="settingStore.globalSetting" class="settings">
-    <el-card class="setting-card">
+  <div class="settings">
+    <el-card v-if="settingStore.globalSetting" class="setting-card">
       <h2>网络配置</h2>
       <div class="section">
         <div class="form-group">
-          <label for="proxyDomain">代理域名:</label>
+          <label for="proxyDomain">代理ip:</label>
           <el-input
             id="proxyDomain"
             v-model="globalSetting.httpProxyHost"
