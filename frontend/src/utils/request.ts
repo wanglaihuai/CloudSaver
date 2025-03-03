@@ -1,6 +1,20 @@
 import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
 import { ElMessage } from "element-plus";
+import { isMobileDevice } from "@/utils/index";
+import { showNotify } from "vant";
 import { RequestResult } from "../types/response";
+
+const errorMessage = (message: string) => {
+  if (isMobileDevice()) {
+    console.log(message);
+    showNotify({
+      type: "danger",
+      message,
+    });
+    return;
+  }
+  ElMessage.error(message);
+};
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL as string,
@@ -21,7 +35,7 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else if (!isLoginAndRedirect(config.url || "")) {
-      ElMessage.error("请先登录");
+      errorMessage("请先登录");
       window.location.href = "/login";
     }
     return config;
@@ -38,12 +52,12 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     if (error.response.status === 401) {
-      ElMessage.error("登录过期，请重新登录");
+      errorMessage("登录过期，请重新登录");
       localStorage.removeItem("token");
       window.location.href = "/login";
       return Promise.reject(new Error("登录过期，请重新登录"));
     }
-    ElMessage.error(error.response.statusText);
+    errorMessage(error.response.statusText);
     return Promise.reject(new Error(error.response.statusText));
   }
 );
