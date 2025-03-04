@@ -77,42 +77,46 @@ export class Searcher {
   }
 
   async searchAll(keyword: string, channelId?: string, messageId?: string) {
-    const allResults = [];
+    const allResults: any[] = [];
 
-    const channelList = channelId
-      ? config.rss.channels.filter((channel) => channel.id === channelId)
+    const channelList: any[] = channelId
+      ? config.rss.channels.filter((channel: any) => channel.id === channelId)
       : config.rss.channels;
 
-    for (let i = 0; i < channelList.length; i++) {
-      const channel = channelList[i];
+    // 使用Promise.all进行并行请求
+    const searchPromises = channelList.map(async (channel) => {
       try {
         const messageIdparams = messageId ? `before=${messageId}` : "";
         const url = `/${channel.id}${keyword ? `?q=${encodeURIComponent(keyword)}&${messageIdparams}` : `?${messageIdparams}`}`;
         console.log(`Searching in channel ${channel.name} with URL: ${url}`);
-        const results = await this.searchInWeb(url);
-        console.log(`Found ${results.items.length} items in channel ${channel.name}`);
-        if (results.items.length > 0) {
-          const channelResults = results.items
-            .filter((item: sourceItem) => item.cloudLinks && item.cloudLinks.length > 0)
-            .map((item: sourceItem) => ({
-              ...item,
-              channel: channel.name,
-              channelId: channel.id,
-            }));
+        return this.searchInWeb(url).then((results) => {
+          console.log(`Found ${results.items.length} items in channel ${channel.name}`);
+          if (results.items.length > 0) {
+            const channelResults = results.items
+              .filter((item: sourceItem) => item.cloudLinks && item.cloudLinks.length > 0)
+              .map((item: sourceItem) => ({
+                ...item,
+                channel: channel.name,
+                channelId: channel.id,
+              }));
 
-          allResults.push({
-            list: channelResults,
-            channelInfo: {
-              ...channel,
-              channelLogo: results.channelLogo,
-            },
-            id: channel.id,
-          });
-        }
+            allResults.push({
+              list: channelResults,
+              channelInfo: {
+                ...channel,
+                channelLogo: results.channelLogo,
+              },
+              id: channel.id,
+            });
+          }
+        });
       } catch (error) {
         Logger.error(`搜索频道 ${channel.name} 失败:`, error);
       }
-    }
+    });
+
+    // 等待所有请求完成
+    await Promise.all(searchPromises);
 
     return {
       data: allResults,
