@@ -26,7 +26,6 @@ app.mount("#app");
 
 const setRootFontSize = () => {
   const isMobile = isMobileDevice();
-  console.log(isMobile);
   if (!isMobile) {
     return;
   } // PC端不干预

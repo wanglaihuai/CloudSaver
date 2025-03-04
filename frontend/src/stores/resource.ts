@@ -191,7 +191,7 @@ export const useResourceStore = defineStore("resource", {
 
       const shareInfo = {
         ...this.shareInfo,
-        list: this.resourceSelect,
+        list: this.resourceSelect.filter((x) => x.isChecked),
       };
 
       if (this.is115Drive(drive)) {
@@ -273,6 +273,7 @@ export const useResourceStore = defineStore("resource", {
 
     // 获取资源列表并选择
     async getResourceListAndSelect(resource: ResourceItem): Promise<boolean> {
+      this.setSelectedResource([]);
       const { cloudType } = resource;
       const drive = CLOUD_DRIVES.find((x) => x.type === cloudType);
       if (!drive) {
@@ -310,7 +311,7 @@ export const useResourceStore = defineStore("resource", {
           };
         }
         this.shareInfo = shareInfo;
-        this.setSelectedResource(this.shareInfo.list);
+        this.setSelectedResource(this.shareInfo.list.map((x) => ({ ...x, isChecked: true })));
         return true;
       } else {
         ElMessage.error("获取资源信息失败,请先检查cookie!");

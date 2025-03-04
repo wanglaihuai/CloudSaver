@@ -55,7 +55,6 @@ const dataList = computed(() => {
   const channel = store.resources.filter((item) => {
     return item.id === currentChannelId.value;
   });
-  console.log(currentChannelId.value, channel, store.resources);
   return channel.length ? channel[0].list : [];
 });
 

@@ -59,7 +59,7 @@
       </template>
       <div v-loading="resourceStore.loadTree">
         <resource-select
-          v-if="saveDialogVisible && saveDialogStep === 1"
+          v-if="saveDialogVisible && saveDialogStep === 1 && resourceStore.resourceSelect.length"
           :cloud-type="currentResource.cloudType"
         />
         <folder-select
@@ -149,7 +149,6 @@ const handleSaveBtnClick = async () => {
   await resourceStore.saveResource(currentResource.value, currentFolderId.value);
 };
 const setDisplayStyle = (style: string) => {
-  console.log(userStore);
   userStore.setDisplayStyle(style as "card" | "table");
 };
 // 添加加载更多处理函数

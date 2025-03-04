@@ -24,26 +24,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { useResourceStore } from "@/stores/resource";
 import { formattedFileSize } from "@/utils/index";
 import type { ShareInfo } from "@/types";
 
 const resourceStore = useResourceStore();
-const selectedResource = ref<ShareInfo[]>([]);
 
 const defaultProps = {
   isLeaf: "leaf",
 };
 
 const handleCheckChange = (data: ShareInfo) => {
-  selectedResource.value = [...resourceStore.resourceSelect, ...selectedResource.value];
-  if (selectedResource.value.findIndex((x) => x.fileId === data.fileId) === -1) {
-    selectedResource.value.push(data);
-  } else {
-    selectedResource.value = selectedResource.value.filter((x) => x.fileId !== data.fileId);
-  }
-  resourceStore.setSelectedResource(selectedResource.value);
+  let resourceSelect = [...resourceStore.resourceSelect];
+  resourceSelect.forEach((x) => {
+    if (x.fileId === data.fileId) x.isChecked = !x.isChecked;
+  });
+  resourceStore.setSelectedResource(resourceSelect);
 };
 </script>
 
@@ -64,10 +60,6 @@ const handleCheckChange = (data: ShareInfo) => {
   color: #999;
   font-size: 12px;
   margin-left: 8px;
-}
-
-:deep(.el-tree-node__content) {
-  height: 32px;
 }
 .folder-select-header {
   display: flex;

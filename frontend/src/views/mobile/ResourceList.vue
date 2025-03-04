@@ -24,35 +24,32 @@
         />
       </van-tab>
     </van-tabs>
-    <el-dialog
+    <van-popup
       v-if="currentResource"
-      v-model="saveDialogVisible"
-      width="100%"
-      :title="saveDialogMap[saveDialogStep].title"
-    >
-      <template #header="{ titleId }">
-        <div class="my-header">
-          <div :id="titleId">
-            <el-tag
-              :type="resourceStore.tagColor[currentResource.cloudType as keyof TagColor]"
-              effect="dark"
-              round
-            >
-              {{ currentResource.cloudType }}
-            </el-tag>
-            {{ saveDialogMap[saveDialogStep].title }}
-            <span
-              v-if="resourceStore.shareInfo.fileSize && saveDialogStep === 1"
-              style="font-weight: bold"
-            >
-              ({{ formattedFileSize(resourceStore.shareInfo.fileSize || 0) }})
-            </span>
-          </div>
-        </div>
-      </template>
-      <div v-loading="resourceStore.loadTree">
+      v-model:show="saveDialogVisible"
+      round
+      closeable
+      position="bottom"
+      :style="{ height: '80%' }"
+      ><div class="my-header">
+        <el-tag
+          :type="resourceStore.tagColor[currentResource.cloudType as keyof TagColor]"
+          effect="dark"
+          round
+        >
+          {{ currentResource.cloudType }}
+        </el-tag>
+        <span>{{ saveDialogMap[saveDialogStep].title }}</span>
+        <span
+          v-if="resourceStore.shareInfo.fileSize && saveDialogStep === 1"
+          style="font-weight: bold"
+        >
+          ({{ formattedFileSize(resourceStore.shareInfo.fileSize || 0) }})
+        </span>
+      </div>
+      <div v-loading="resourceStore.loadTree" class="popup-content">
         <resource-select
-          v-if="saveDialogVisible && saveDialogStep === 1"
+          v-if="saveDialogVisible && saveDialogStep === 1 && resourceStore.resourceSelect.length"
           :cloud-type="currentResource.cloudType"
         />
         <folder-select
@@ -64,12 +61,20 @@
       </div>
 
       <div class="dialog-footer">
-        <el-button @click="saveDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmClick">{{
-          saveDialogMap[saveDialogStep].buttonText
-        }}</el-button>
-      </div>
-    </el-dialog>
+        <div class="save-floder-show">
+          <span>保存至</span>
+          <div class="save-floder">
+            <van-icon name="notes-o" /><span>{{
+              currentFolderPath ? currentFolderPath[currentFolderPath.length - 1]?.name : "待选择"
+            }}</span>
+          </div>
+        </div>
+        <!-- <van-button class="btn" round @click="saveDialogVisible = false"> 取消 </van-button> -->
+        <van-button class="btn" round type="primary" @click="handleConfirmClick">
+          {{ saveDialogMap[saveDialogStep].buttonText }}
+        </van-button>
+      </div></van-popup
+    >
   </div>
 </template>
 
@@ -80,7 +85,7 @@ import { useResourceStore } from "@/stores/resource";
 import FolderSelect from "@/components/mobile/FolderSelect.vue";
 import ResourceSelect from "@/components/mobile/ResourceSelect.vue";
 import { formattedFileSize } from "@/utils/index";
-import type { ResourceItem, TagColor } from "@/types";
+import type { Folder, ResourceItem, TagColor } from "@/types";
 
 import ResourceCard from "@/components/mobile/ResourceCard.vue";
 import { useRouter } from "vue-router";
@@ -92,6 +97,7 @@ const resourceStore = useResourceStore();
 const saveDialogVisible = ref(false);
 const currentResource = ref<ResourceItem | null>(null);
 const currentFolderId = ref<string | null>(null);
+const currentFolderPath = ref<null | Folder[]>(null);
 const saveDialogStep = ref<1 | 2>(1);
 const currentTab = ref<string>("");
 
@@ -128,14 +134,15 @@ const handleSave = async (resource: ResourceItem) => {
   }
 };
 
-const handleFolderSelect = async (folderId: string) => {
+const handleFolderSelect = async (folders: Folder[]) => {
   if (!currentResource.value) return;
-  currentFolderId.value = folderId;
+  currentFolderPath.value = folders;
+  currentFolderId.value = folders[folders.length - 1]?.cid || "0";
 };
 
 const handleConfirmClick = async () => {
   if (saveDialogStep.value === 1) {
-    if (resourceStore.resourceSelect.length === 0) {
+    if (!resourceStore.resourceSelect.some((x) => x.isChecked)) {
       ElMessage.warning("请选择要保存的资源");
       return;
     }
@@ -192,6 +199,27 @@ onUnmounted(() => {
   border-radius: 15px;
   padding: 0 15px;
 }
+.my-header {
+  height: 100px;
+  width: 100%;
+  border-bottom: 1px solid #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  padding: 0 25px;
+  font-size: 30px;
+  span {
+    margin-left: 5px;
+  }
+}
+.popup-content {
+  height: calc(100% - 200px);
+  width: 100%;
+  overflow: auto;
+  padding: 25px;
+  box-sizing: border-box;
+}
 .header_right {
   cursor: pointer;
 }
@@ -208,9 +236,51 @@ onUnmounted(() => {
 }
 
 .dialog-footer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  width: 100%;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 15px 25px;
+  box-sizing: border-box;
+  height: 100px;
+  .btn {
+    width: 150px;
+    height: 60px;
+  }
+  .save-floder-show {
+    width: 360px;
+    display: flex;
+    align-items: center;
+    span {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .save-floder {
+      width: 280px;
+      height: 40px;
+      padding: 0 10px;
+      box-sizing: border-box;
+      display: inline-flexbox;
+      align-items: center;
+      justify-content: flex-start;
+      line-height: 40px;
+      border-radius: 5px;
+      background-color: #ececec;
+      font-size: 18px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      span {
+        margin-left: 5px;
+        font-weight: unset;
+      }
+    }
+    /* width: ; */
+  }
 }
 
 .group-header {

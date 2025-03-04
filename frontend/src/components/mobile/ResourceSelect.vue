@@ -1,25 +1,23 @@
 <template>
   <div class="folder-select">
-    <el-tree
-      ref="treeRef"
-      :data="resourceStore.shareInfo.list"
-      :props="defaultProps"
-      :default-checked-keys="resourceStore.shareInfo.list?.map((x) => x.fileId) || []"
-      node-key="fileId"
-      show-checkbox
-      highlight-current
-      @check-change="handleCheckChange"
-    >
-      <template #default="{ node }">
-        <span class="folder-node">
-          <el-icon><Folder /></el-icon>
-          {{ node.data.fileName }}
-          <span v-if="node.data.fileSize" style="font-weight: bold"
-            >({{ formattedFileSize(node.data.fileSize) }})</span
-          >
-        </span>
-      </template>
-    </el-tree>
+    <van-checkbox-group v-model="selectedResourceIds" @change="handleCheckChange">
+      <div v-for="item in resourceStore.shareInfo.list" :key="item.fileId" class="folder-item">
+        <div class="folder-item-left">
+          <span class="folder-node">
+            <el-icon><Folder /></el-icon>
+            <div class="folder-node-name">
+              {{ item.fileName }}
+              <span v-if="item.fileSize" style="font-weight: bold"
+                >({{ formattedFileSize(item.fileSize) }})</span
+              >
+            </div>
+          </span>
+        </div>
+        <div class="folder-item-right">
+          <van-checkbox :name="item.fileId"></van-checkbox>
+        </div>
+      </div>
+    </van-checkbox-group>
   </div>
 </template>
 
@@ -27,23 +25,17 @@
 import { ref } from "vue";
 import { useResourceStore } from "@/stores/resource";
 import { formattedFileSize } from "@/utils/index";
-import type { ShareInfo } from "@/types";
 
 const resourceStore = useResourceStore();
-const selectedResource = ref<ShareInfo[]>([]);
+const selectedResourceIds = ref<string[]>();
+selectedResourceIds.value = resourceStore.resourceSelect.map((x) => x.fileId);
 
-const defaultProps = {
-  isLeaf: "leaf",
-};
-
-const handleCheckChange = (data: ShareInfo) => {
-  selectedResource.value = [...resourceStore.resourceSelect, ...selectedResource.value];
-  if (selectedResource.value.findIndex((x) => x.fileId === data.fileId) === -1) {
-    selectedResource.value.push(data);
-  } else {
-    selectedResource.value = selectedResource.value.filter((x) => x.fileId !== data.fileId);
-  }
-  resourceStore.setSelectedResource(selectedResource.value);
+const handleCheckChange = (Ids: string[]) => {
+  const newResourceSelect = [...resourceStore.resourceSelect];
+  newResourceSelect.forEach((x) => {
+    x.isChecked = Ids.includes(x.fileId);
+  });
+  resourceStore.setSelectedResource(newResourceSelect);
 };
 </script>
 
@@ -65,18 +57,15 @@ const handleCheckChange = (data: ShareInfo) => {
   font-size: 12px;
   margin-left: 8px;
 }
-
-:deep(.el-tree-node__content) {
-  height: 32px;
-}
-.folder-select-header {
+.folder-item {
+  font-size: 20px;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 10px;
-  font-size: 14px;
-  padding: 5px 10px;
-  border: 1px solid #e5e6e8;
-  border-radius: 8px;
+  justify-content: space-between;
+  border-bottom: 1px dashed #ececec;
+  padding: 15px 0;
+}
+.folder-item-left {
+  width: 80%;
 }
 </style>

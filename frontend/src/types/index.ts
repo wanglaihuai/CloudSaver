@@ -28,6 +28,7 @@ export interface ShareInfo {
   fileName: string;
   fileSize?: number;
   fileIdToken?: string;
+  isChecked?: boolean;
 }
 
 export interface ShareInfoResponse {
