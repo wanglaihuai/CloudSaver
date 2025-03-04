@@ -1,19 +1,19 @@
 <template>
-  <div class="folder-select">
+  <div class="resource-select">
     <van-checkbox-group v-model="selectedResourceIds" @change="handleCheckChange">
-      <div v-for="item in resourceStore.shareInfo.list" :key="item.fileId" class="folder-item">
-        <div class="folder-item-left">
-          <span class="folder-node">
+      <div v-for="item in resourceStore.shareInfo.list" :key="item.fileId" class="resource-item">
+        <div class="resource-item-left">
+          <span class="resource-node">
             <el-icon><Folder /></el-icon>
-            <div class="folder-node-name">
+            <div class="resource-name">
               {{ item.fileName }}
-              <span v-if="item.fileSize" style="font-weight: bold"
-                >({{ formattedFileSize(item.fileSize) }})</span
-              >
+              <span v-if="item.fileSize" class="file-size">
+                ({{ formattedFileSize(item.fileSize) }})
+              </span>
             </div>
           </span>
         </div>
-        <div class="folder-item-right">
+        <div class="resource-item-right">
           <van-checkbox :name="item.fileId"></van-checkbox>
         </div>
       </div>
@@ -39,33 +39,43 @@ const handleCheckChange = (Ids: string[]) => {
 };
 </script>
 
-<style scoped>
-.folder-select {
+<style scoped lang="scss">
+@import "@/styles/responsive.scss";
+
+.resource-select {
   min-height: 300px;
   max-height: 500px;
   overflow-y: auto;
+  padding: var(--spacing-base);
 }
 
-.folder-node {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.folder-path {
-  color: #999;
-  font-size: 12px;
-  margin-left: 8px;
-}
-.folder-item {
-  font-size: 20px;
+.resource-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: var(--spacing-base) 0;
   border-bottom: 1px dashed #ececec;
-  padding: 15px 0;
+
+  &-left {
+    flex: 1;
+    margin-right: var(--spacing-base);
+  }
 }
-.folder-item-left {
-  width: 80%;
+
+.resource-node {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+}
+
+.resource-name {
+  word-break: break-all;
+}
+
+.file-size {
+  font-size: var(--font-size-sm);
+  color: #999;
+  margin-left: var(--spacing-xs);
 }
 </style>

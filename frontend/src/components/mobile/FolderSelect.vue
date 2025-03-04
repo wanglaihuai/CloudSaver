@@ -5,10 +5,11 @@
       <span
         v-for="(path, index) in currentFolderPath"
         :key="path.cid"
+        class="path-item"
         @click="handleFolderClick(path, index)"
       >
         {{ path.name }}
-        <span v-if="index !== currentFolderPath.length - 1" style="margin-right: 5px">></span>
+        <span v-if="index !== currentFolderPath.length - 1" class="path-separator">></span>
       </span>
     </div>
     <div class="folder-item-list">
@@ -99,43 +100,51 @@ const getList = async (data?: Folder) => {
 getList();
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@import "@/styles/responsive.scss";
+
 .folder-select {
   position: relative;
-  padding-top: 60px;
+  padding-top: var(--spacing-xl);
+
+  &-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: var(--font-size-base);
+    padding: var(--spacing-sm) var(--spacing-base);
+    border: 1px solid #e5e6e8;
+    border-radius: var(--border-radius-base);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
-.folder-path {
-  color: #999;
-  font-size: 12px;
-  margin-left: 8px;
-}
-
-.folder-select-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 10px;
-  font-size: 21px;
-  padding: 5px 10px;
-  border: 1px solid #e5e6e8;
-  border-radius: 8px;
-  display: flex;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
 .folder-item {
-  font-size: 20px;
+  font-size: var(--font-size-lg);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  padding: var(--spacing-base) var(--spacing-sm);
   border-bottom: 1px dashed #ececec;
-  padding: 15px 5px;
+
+  .folder-node {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+}
+
+.path-item {
+  cursor: pointer;
+  &:hover {
+    color: var(--theme-theme);
+  }
+}
+
+.path-separator {
+  margin: 0 var(--spacing-xs);
 }
 </style>

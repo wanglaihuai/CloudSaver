@@ -1,105 +1,87 @@
 <template>
-  <div class="settings">
-    <el-card v-if="settingStore.globalSetting" class="setting-card">
-      <div class="card-title">项目配置</div>
-      <div class="section">
-        <div class="form-group">
-          <label for="proxyDomain">代理ip:</label>
-          <el-input
-            id="proxyDomain"
-            v-model="globalSetting.httpProxyHost"
-            class="form-input"
-            type="text"
-            placeholder="127.0.0.1"
-          />
-        </div>
-        <div class="form-group">
-          <label for="proxyPort">代理端口:</label>
-          <el-input
-            id="proxyPort"
-            v-model="globalSetting.httpProxyPort"
-            class="form-input"
-            type="text"
-            placeholder="7890"
-          />
-        </div>
-        <div class="form-group">
-          <label for="AdminUserCode">管理员注册码:</label>
-          <el-input-number
-            id="AdminUserCode"
-            v-model="globalSetting.AdminUserCode"
-            class="form-input"
-            type="text"
-            :controls="false"
-            :precision="0"
+  <div class="setting">
+    <!-- 全局设置 -->
+    <div v-if="settingStore.globalSetting" class="setting__section">
+      <div class="setting__title">项目配置</div>
+      <div class="setting__card">
+        <van-cell-group inset>
+          <van-field v-model="globalSetting.httpProxyHost" label="代理IP" placeholder="127.0.0.1" />
+          <van-field v-model="globalSetting.httpProxyPort" label="代理端口" placeholder="7890" />
+          <van-field
+            v-model.number="globalSetting.AdminUserCode"
+            label="管理员码"
+            type="digit"
             placeholder="设置管理员注册码"
           />
-        </div>
-        <div class="form-group">
-          <label for="CommonUserCode">普通用户注册码:</label>
-          <el-input-number
-            id="CommonUserCode"
-            v-model="globalSetting.CommonUserCode"
-            class="form-input"
-            type="text"
-            :precision="0"
-            :controls="false"
+          <van-field
+            v-model.number="globalSetting.CommonUserCode"
+            label="用户注册码"
+            type="digit"
             placeholder="设置普通用户注册码"
           />
-        </div>
+          <van-cell center title="启用代理">
+            <template #right-icon>
+              <van-switch v-model="globalSetting.isProxyEnabled" size="24px" />
+            </template>
+          </van-cell>
+        </van-cell-group>
       </div>
-      <div class="section">
-        <div class="form-group">
-          <label for="isProxyEnabled">启用代理:</label>
-          <el-switch v-model="globalSetting.isProxyEnabled" @change="saveSettings" />
-        </div>
-      </div>
-    </el-card>
-    <el-card class="setting-card">
-      <div class="card-title">用户配置</div>
-      <div class="section">
-        <div class="form-group">
-          <label for="cookie115">115网盘Cookie:</label>
-          <el-input
-            id="cookie115"
+    </div>
+
+    <!-- 用户设置 -->
+    <div class="setting__section">
+      <div class="setting__title">用户配置</div>
+      <div class="setting__card">
+        <van-cell-group inset>
+          <van-field
             v-model="settingStore.userSettings.cloud115Cookie"
-            class="form-input"
-            type="text"
+            label="115网盘"
+            type="textarea"
+            rows="2"
+            autosize
+            placeholder="请输入115网盘Cookie"
           />
-        </div>
-        <div class="form-group">
-          <label for="cookieQuark">夸克网盘Cookie:</label>
-          <el-input
-            id="cookieQuark"
+          <van-field
             v-model="settingStore.userSettings.quarkCookie"
-            class="form-input"
-            type="text"
+            label="夸克网盘"
+            type="textarea"
+            rows="2"
+            autosize
+            placeholder="请输入夸克网盘Cookie"
+          />
+        </van-cell-group>
+      </div>
+
+      <!-- 帮助说明 -->
+      <div class="setting__help">
+        <div class="help__title">帮助说明</div>
+        <div class="help__links">
+          <van-cell
+            title="如何获取115网盘cookie？"
+            is-link
+            url="https://alist.nn.ci/zh/guide/drivers/115.html"
+          />
+          <van-cell
+            title="如何获取夸克网盘cookie？"
+            is-link
+            url="https://alist.nn.ci/zh/guide/drivers/quark.html"
           />
         </div>
       </div>
-      <div class="user-setting-tips">
-        <h3>帮助</h3>
-        <div>
-          <el-link
-            target="_blank"
-            href="https://alist.nn.ci/zh/guide/drivers/115.html#cookie%E8%8E%B7%E5%8F%96%E6%96%B9%E5%BC%8F"
-            >如何获取115网盘cookie？</el-link
-          >
-        </div>
-        <div>
-          <el-link target="_blank" href="https://alist.nn.ci/zh/guide/drivers/quark.html#cookie"
-            >如何获取夸克网盘cookie？</el-link
-          >
-        </div>
-      </div>
-    </el-card>
-    <van-button round block type="primary" @click="saveSettings"> 保存设置 </van-button>
+    </div>
+
+    <!-- 保存按钮 -->
+    <div class="setting__submit">
+      <van-button round block type="primary" @click="saveSettings"> 保存设置 </van-button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useUserSettingStore } from "@/stores/userSetting";
 import { computed } from "vue";
+import { showNotify } from "vant";
+
 const settingStore = useUserSettingStore();
 
 const globalSetting = computed(
@@ -115,68 +97,82 @@ const globalSetting = computed(
 
 settingStore.getSettings();
 
-const saveSettings = () => {
-  settingStore.saveSettings();
-  // Add your save logic here
+const saveSettings = async () => {
+  try {
+    await settingStore.saveSettings();
+    showNotify({ type: "success", message: "设置保存成功" });
+  } catch (error) {
+    showNotify({ type: "danger", message: "设置保存失败" });
+  }
 };
 </script>
 
-<style scoped lang="scss">
-.settings {
-  padding: 10px;
-}
-.setting-card {
-  margin-bottom: 20px;
-  border-radius: 15px;
-  padding: 0px;
-}
-.card-title {
-  font-size: 32px;
-}
+<style lang="scss" scoped>
+.setting {
+  min-height: 100vh;
+  background: var(--theme-background);
+  padding: var(--spacing-base);
+  padding-bottom: 90px; // 为底部导航栏和按钮留出空间
 
-.section {
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  &:last-child {
-    margin-bottom: 0;
+  &__section {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  &__title {
+    font-size: 16px; // 统一字体大小
+    font-weight: 500;
+    margin-bottom: var(--spacing-base);
+    color: var(--theme-color);
+  }
+
+  &__card {
+    background: var(--theme-other_background);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+  }
+
+  &__help {
+    margin-top: var(--spacing-base);
+
+    .help__title {
+      font-size: 14px; // 统一字体大小
+      margin-bottom: var(--spacing-sm);
+      color: var(--theme-color);
+    }
+  }
+
+  &__submit {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 50px; // tabbar 高度
+    padding: var(--spacing-base);
+    background: var(--theme-other_background);
+    z-index: 99;
   }
 }
 
-.form-group {
-  margin-bottom: 10px;
-  width: 48%;
-}
-.form-input {
-  text-align: left;
-  width: 100%;
-}
-::v-deep .el-input__inner {
-  text-align: left;
+// 深度修改 Vant 组件样式
+:deep(.van-field) {
+  font-size: 14px; // 统一字体大小
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
+:deep(.van-field__label) {
+  width: 6em;
+  color: var(--theme-color);
 }
 
-input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
+:deep(.van-cell) {
+  font-size: 14px; // 统一字体大小
+  padding: 12px var(--spacing-base);
 }
 
-button {
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
+:deep(.van-button) {
+  height: 40px; // 统一按钮高度
+  font-size: 14px; // 统一字体大小
 }
 
-button:hover {
-  background-color: #0056b3;
+:deep(.van-cell-group--inset) {
+  margin: 0;
 }
 </style>

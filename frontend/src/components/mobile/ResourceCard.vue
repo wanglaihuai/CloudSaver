@@ -1,65 +1,99 @@
 <template>
-  <div class="resource-card-list">
-    <div v-for="item in dataList" :key="item.id" class="resource-card-list__item">
-      <div class="resource-card-content-box">
-        <div class="resource-card-left">
+  <div class="resource-card">
+    <div v-for="item in dataList" :key="item.id" class="resource-card__item">
+      <!-- 内容区域 -->
+      <div class="item__content">
+        <!-- 左侧图片 -->
+        <div class="content__image">
           <van-image
-            width="100"
-            class="resource-card-image"
-            lazy-load
-            fit="contain"
             :src="`/tele-images/?url=${encodeURIComponent(item.image as string)}`"
+            fit="contain"
+            lazy-load
           />
+          <!-- 来源标签移到图片左上角 -->
+          <van-tag class="image__tag" :color="getTagColor(item.cloudType)" round>
+            {{ item.cloudType }}
+          </van-tag>
         </div>
-        <div class="resource-card-right">
-          <div class="resource-card-title" @click="openUrl(item.cloudLinks[0])">
+
+        <!-- 右侧信息 -->
+        <div class="content__info">
+          <!-- 标题 -->
+          <div class="info__title" @click="openUrl(item.cloudLinks[0])">
             {{ item.title }}
           </div>
-          <div class="resource-card-content" v-html="item.content"></div>
-          <div v-if="item.tags && item.tags.length" class="resource-card-tags">
-            <van-tag
-              v-for="tag in item.tags"
-              :key="tag"
-              type="primary"
-              class="item-tag"
-              @click="searchMovieforTag(tag)"
-              >{{ tag }}</van-tag
-            >
+
+          <!-- 描述 - 添加展开收起功能 -->
+          <div
+            class="info__desc"
+            :class="{ 'is-expanded': expandedItems[item.id] }"
+            @click="toggleExpand(item.id)"
+            v-html="item.content"
+          />
+
+          <!-- 底部区域：标签 -->
+          <div class="info__footer">
+            <div v-if="item.tags?.length" class="info__tags">
+              <van-tag
+                v-for="tag in item.tags"
+                :key="tag"
+                type="primary"
+                plain
+                round
+                @click.stop="searchMovieforTag(tag)"
+              >
+                {{ tag }}
+              </van-tag>
+            </div>
+
+            <!-- 转存按钮 -->
+            <div class="info__action">
+              <van-button type="primary" size="mini" round @click="handleSave(item)">
+                转存
+              </van-button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="resource-card-footer">
-        <el-tag :type="store.tagColor[item.cloudType as keyof TagColor]" effect="dark" round>
-          {{ item.cloudType }}
-        </el-tag>
-        <van-button type="primary" class="save-btn" @click="handleSave(item)">转存</van-button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from "vue";
 import { useResourceStore } from "@/stores/resource";
-import { computed } from "vue";
-import type { ResourceItem, TagColor } from "@/types";
+import type { ResourceItem } from "@/types";
 
+// Props 定义
 const props = defineProps<{
   currentChannelId: string;
 }>();
 
-const currentChannelId = computed(() => props.currentChannelId);
+// 事件定义
+const emit = defineEmits<{
+  (e: "save", resource: ResourceItem): void;
+  (e: "searchMovieforTag", tag: string): void;
+}>();
 
+// 状态管理
 const store = useResourceStore();
 
+// 计算属性
 const dataList = computed(() => {
-  const channel = store.resources.filter((item) => {
-    return item.id === currentChannelId.value;
-  });
-  return channel.length ? channel[0].list : [];
+  const channel = store.resources.find((item) => item.id === props.currentChannelId);
+  return channel?.list || [];
 });
 
-const emit = defineEmits(["save", "searchMovieforTag"]);
+// 标签颜色映射
+const getTagColor = (type?: string) => {
+  const colorMap: Record<string, string> = {
+    pan115: "#07c160",
+    quark: "#1989fa",
+  };
+  return colorMap[type || ""] || "#ff976a";
+};
 
+// 方法定义
 const handleSave = (resource: ResourceItem) => {
   emit("save", resource);
 };
@@ -71,67 +105,147 @@ const openUrl = (url: string) => {
 const searchMovieforTag = (tag: string) => {
   emit("searchMovieforTag", tag);
 };
+
+// 展开状态管理
+const expandedItems = ref<Record<string, boolean>>({});
+
+// 切换展开状态
+const toggleExpand = (id: string) => {
+  expandedItems.value[id] = !expandedItems.value[id];
+};
 </script>
 
-<style scoped lang="scss">
-.resource-card-list {
-  padding: 0 10px;
-}
-.resource-card-image {
-  border-radius: 15px;
+<style lang="scss" scoped>
+// 文本省略混入 - 移到最前面
+@mixin text-ellipsis($lines) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
   overflow: hidden;
 }
-.resource-card-list__item {
-  padding: 20px;
-  border-bottom: 1px solid #eee;
-  box-shadow: 0 4px 10px rgba(225, 225, 225, 0.3);
-  background-color: #fff;
-  border-radius: 15px;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0 auto;
-  margin-top: 15px;
-  padding-bottom: 0;
-  .resource-card-content-box {
+
+.resource-card {
+  padding: var(--spacing-base);
+
+  &__item {
+    margin-bottom: var(--spacing-base);
+    background: var(--theme-other_background);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+  }
+}
+
+.item {
+  &__content {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    padding-bottom: 15px;
-    .resource-card-right {
-      margin-left: 10px;
-      .resource-card-title {
-        font-size: 24px;
-        font-weight: bold;
-        -webkit-box-orient: vertical;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        overflow: hidden;
-        white-space: all;
-      }
-      .resource-card-content {
-        -webkit-box-orient: vertical;
-        display: -webkit-box;
-        -webkit-line-clamp: 4;
-        overflow: hidden;
-        white-space: all;
-      }
+    gap: var(--spacing-base);
+    padding: var(--spacing-base);
+  }
+}
+
+.content {
+  &__image {
+    position: relative; // 为标签定位
+    flex-shrink: 0;
+    width: 100px;
+    height: 140px;
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    background: var(--van-gray-2);
+
+    :deep(.van-image) {
+      width: 100%;
+      height: 100%;
+    }
+
+    .image__tag {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: 10px;
+      padding: 0 6px;
     }
   }
-  .item-tag {
-    margin-left: 10px;
-    font-size: 18px;
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
   }
 }
-.resource-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: #eee 1px solid;
-  height: 80px;
-}
-.save-btn {
-  height: 50px;
-  font-size: 24px;
-  border-radius: 40px;
+
+.info {
+  &__title {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--theme-color);
+    @include text-ellipsis(2);
+
+    &:active {
+      color: var(--theme-theme);
+    }
+  }
+
+  &__desc {
+    position: relative;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--van-gray-7);
+    @include text-ellipsis(3);
+    margin: 4px 0;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &.is-expanded {
+      -webkit-line-clamp: 8;
+    }
+
+    &::after {
+      content: "展开";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      padding: 0 4px;
+      font-size: 12px;
+      color: var(--theme-theme);
+      background: var(--theme-other_background);
+    }
+
+    &.is-expanded::after {
+      content: "收起";
+    }
+  }
+
+  &__footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    margin-top: auto;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    :deep(.van-tag) {
+      font-size: 11px;
+      padding: 0 8px;
+    }
+  }
+
+  &__action {
+    display: flex;
+    justify-content: flex-end;
+
+    .van-button {
+      font-size: 12px;
+      height: 24px;
+      padding: 0 12px;
+    }
+  }
 }
 </style>

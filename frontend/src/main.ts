@@ -8,6 +8,7 @@ import App from "./App.vue";
 import { Lazyload } from "vant";
 import "vant/es/notify/style";
 import "vant/es/dialog/style";
+import "@/styles/responsive.scss";
 
 import router from "./router/index";
 

@@ -1,31 +1,43 @@
 <template>
-  <div class="movie-wall">
-    <div v-for="movie in doubanStore.hotList" :key="movie.id" class="movie-item">
-      <div class="movie-poster">
-        <el-image
-          class="movie-poster-img"
-          :src="movie.cover"
-          fit="cover"
-          lazy
-          :alt="movie.title"
-          hide-on-click-modal
-          :preview-src-list="[movie.cover]"
-        />
-        <div class="movie-rate">
-          {{ movie.rate }}
-        </div>
-        <div class="movie-poster-hover" @click="searchMovie(movie.title)">
-          <div class="movie-search">
-            <el-icon class="search_icon" size="28px"><Search /></el-icon>
+  <div class="mobile-page douban">
+    <!-- 电影列表 -->
+    <div class="douban__grid">
+      <div v-for="movie in doubanStore.hotList" :key="movie.id" class="douban__item">
+        <!-- 海报卡片 -->
+        <div class="douban__poster">
+          <van-image
+            class="poster__img"
+            :src="movie.cover"
+            fit="cover"
+            lazy
+            loading="skeleton"
+            :alt="movie.title"
+            @click="previewImage(movie.cover)"
+          />
+          <!-- 评分标签 -->
+          <van-tag
+            class="poster__rate"
+            type="primary"
+            :style="{ backgroundColor: getRateColor(movie.rate) }"
+          >
+            {{ movie.rate }}
+          </van-tag>
+          <!-- 搜索按钮 -->
+          <div class="poster__action" @click.stop="searchMovie(movie.title)">
+            <van-icon name="search" size="24" />
           </div>
         </div>
-      </div>
-      <div class="movie-info">
-        <el-link :href="movie.url" target="_blank" :underline="false" class="movie-title">{{
-          movie.title
-        }}</el-link>
+        <!-- 电影信息 -->
+        <div class="douban__info">
+          <van-button class="info__title" type="default" :url="movie.url" text="text" block>
+            {{ movie.title }}
+          </van-button>
+        </div>
       </div>
     </div>
+
+    <!-- 空状态 -->
+    <van-empty v-if="!doubanStore.hotList.length" description="暂无数据" />
   </div>
 </template>
 
@@ -33,115 +45,150 @@
 import { computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useDoubanStore } from "@/stores/douban";
+import { showImagePreview } from "vant";
+
 interface CurrentParams {
   type: string;
   tag?: string;
 }
+
+// 路由相关
 const router = useRouter();
 const route = useRoute();
-
 const routeParams = computed((): CurrentParams => ({ ...route.query }) as unknown as CurrentParams);
-const doubanStore = useDoubanStore();
-if (routeParams.value) {
-  doubanStore.setCurrentParams(routeParams.value);
-}
 
+// 状态管理
+const doubanStore = useDoubanStore();
+
+// 监听路由参数变化
 watch(
   () => routeParams.value,
-  () => {
-    console.log(routeParams.value);
-    doubanStore.setCurrentParams(routeParams.value);
-  }
+  (params) => {
+    if (params) {
+      doubanStore.setCurrentParams(params);
+    }
+  },
+  { immediate: true }
 );
 
+// 方法定义
 const searchMovie = (title: string) => {
-  router.push({ path: "/resource", query: { keyword: title } });
+  router.push({
+    path: "/resource",
+    query: { keyword: title },
+  });
+};
+
+const previewImage = (url: string) => {
+  showImagePreview({
+    images: [url],
+    closeable: true,
+  });
+};
+
+// 根据评分获取颜色
+const getRateColor = (rate: string | number) => {
+  const numRate = Number(rate);
+  if (numRate >= 8) return "#42b883";
+  if (numRate >= 6) return "#5853fa";
+  return "#f56c6c";
 };
 </script>
 
-<style scoped>
-.movie-wall {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 48%);
-  grid-row-gap: 15px;
-  justify-content: space-between;
-  padding: 15px;
-}
+<style lang="scss" scoped>
+.douban {
+  // 网格布局 - 修改为两列
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-base);
+    padding: var(--spacing-base);
+  }
 
-.movie-item {
-  overflow: hidden; /* 确保内容不会超出卡片 */
-  text-align: center;
-  background-color: #f9f9f9; /* 可选：设置背景颜色 */
-  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12); /* 可选：设置阴影效果 */
-  border-radius: 15px; /* 设置图片圆角 */
-  box-sizing: border-box;
-  padding-bottom: 0px;
-  position: relative;
-  padding: 15px;
-  padding-bottom: 0;
-}
+  // 电影项
+  &__item {
+    background: var(--theme-other_background);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
 
-.movie-poster-img {
-  width: 100%;
-  height: 280px;
-  object-fit: cover; /* 确保图片使用cover模式 */
-  border-radius: 15px; /* 设置图片圆角 */
-  overflow: hidden;
-}
-.movie-info {
-  /* margin-top: 8px; */
-  .movie-title {
-    font-size: 24px;
-    font-weight: bold;
-    padding: 10px 0;
+  // 海报区域
+  &__poster {
+    position: relative;
+    aspect-ratio: 2/3;
+    background: #f5f5f5;
+    overflow: hidden;
+
+    .poster__img {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s ease;
+
+      &:active {
+        transform: scale(1.05);
+      }
+    }
+
+    .poster__rate {
+      position: absolute;
+      top: var(--spacing-xs);
+      right: var(--spacing-xs);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: var(--border-radius-lg);
+    }
+
+    .poster__action {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      color: #fff;
+
+      &:active {
+        opacity: 1;
+      }
+    }
+  }
+
+  // 信息区域
+  &__info {
+    padding: 6px 8px;
+
+    .info__title {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--theme-color);
+      text-align: left;
+      border: none;
+
+      &:active {
+        color: var(--theme-theme);
+      }
+    }
   }
 }
-.movie-poster {
-  width: 100%;
-  height: 280px;
-  position: relative;
-  overflow: hidden;
-  border-radius: 15px;
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-  overflow: hidden;
+
+// 深度修改 Vant 组件样式
+:deep(.van-image) {
+  display: block;
+  background: #f5f5f5;
 }
 
-.movie-poster-hover {
-  opacity: 0; /* 默认情况下隐藏 */
-  transition: opacity 0.3s ease; /* 添加过渡效果 */
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  /* height: 100%; */
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+:deep(.van-tag--primary) {
+  border: none;
 }
 
-.movie-poster:hover .movie-poster-hover {
-  opacity: 1; /* 鼠标移入时显示 */
-}
-
-.movie-rate {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: rgba(88, 83, 250, 0.8);
-  color: white;
-  padding: 0px 8px;
-  border-radius: 5px;
-  font-size: 20px;
-}
-.movie-search {
-  color: white;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
+:deep(.van-button) {
+  height: auto;
+  padding: var(--spacing-xs) 0;
+  border: none;
 }
 </style>

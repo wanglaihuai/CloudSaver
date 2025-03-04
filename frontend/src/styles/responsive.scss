@@ -1,0 +1,47 @@
+// 响应式布局工具类
+@mixin mobile {
+    @media screen and (max-width: 768px) {
+        @content;
+    }
+}
+
+@mixin tablet {
+    @media screen and (min-width: 769px) and (max-width: 1024px) {
+        @content;
+    }
+}
+
+@mixin desktop {
+    @media screen and (min-width: 1025px) {
+        @content;
+    }
+}
+
+// 通用样式变量
+:root {
+    // 字体大小
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+
+    // 间距
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-base: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    // 圆角
+    --border-radius-sm: 4px;
+    --border-radius-base: 8px;
+    --border-radius-lg: 16px;
+    --border-radius-xl: 24px;
+
+    // 移动端特殊变量
+    @include mobile {
+        --font-size-base: 14px;
+        --spacing-base: 12px;
+    }
+}

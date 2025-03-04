@@ -1,16 +1,20 @@
 <template>
-  <div ref="content" class="resource-list">
-    <div :class="{ 'resource-list__header': true }">
-      <div class="header_left">
-        <div class="refresh_btn" @click="refreshResources">
-          <el-icon class="type_icon" size="20px"><Refresh /></el-icon>最新资源<span
-            class="item-count"
-            >(上次刷新时间：{{ resourceStore.lastUpdateTime }})</span
-          >
-        </div>
-      </div>
+  <div class="resource-list">
+    <!-- 头部刷新区 -->
+    <div class="resource-list__header">
+      <van-cell center @click="refreshResources">
+        <template #title>
+          <div class="header__title">
+            <van-icon name="replay" size="18" />
+            <span class="title__text">最新资源</span>
+            <span class="title__time">上次刷新：{{ resourceStore.lastUpdateTime }}</span>
+          </div>
+        </template>
+      </van-cell>
     </div>
-    <van-tabs v-model:active="currentTab">
+
+    <!-- 资源列表 -->
+    <van-tabs v-model:active="currentTab" sticky swipeable animated>
       <van-tab
         v-for="item in resourceStore.resources"
         :key="item.id"
@@ -24,83 +28,106 @@
         />
       </van-tab>
     </van-tabs>
+
+    <!-- 保存弹窗 -->
     <van-popup
-      v-if="currentResource"
       v-model:show="saveDialogVisible"
       round
       closeable
       position="bottom"
       :style="{ height: '80%' }"
-      ><div class="my-header">
-        <el-tag
-          :type="resourceStore.tagColor[currentResource.cloudType as keyof TagColor]"
-          effect="dark"
-          round
-        >
-          {{ currentResource.cloudType }}
-        </el-tag>
-        <span>{{ saveDialogMap[saveDialogStep].title }}</span>
-        <span
-          v-if="resourceStore.shareInfo.fileSize && saveDialogStep === 1"
-          style="font-weight: bold"
-        >
-          ({{ formattedFileSize(resourceStore.shareInfo.fileSize || 0) }})
+    >
+      <!-- 弹窗头部 -->
+      <div class="popup__header">
+        <van-tag :color="getTagColor(currentResource?.cloudType)" round>
+          {{ currentResource?.cloudType }}
+        </van-tag>
+        <span class="header__title">{{ saveDialogMap[saveDialogStep].title }}</span>
+        <span v-if="resourceStore.shareInfo.fileSize && saveDialogStep === 1" class="header__size">
+          {{ formattedFileSize(resourceStore.shareInfo.fileSize) }}
         </span>
       </div>
-      <div v-loading="resourceStore.loadTree" class="popup-content">
+
+      <!-- 弹窗内容 -->
+      <div class="popup__content">
+        <van-loading v-if="resourceStore.loadTree" vertical>加载中...</van-loading>
+
         <resource-select
           v-if="saveDialogVisible && saveDialogStep === 1 && resourceStore.resourceSelect.length"
-          :cloud-type="currentResource.cloudType"
+          :cloud-type="currentResource?.cloudType"
         />
+
         <folder-select
-          v-if="saveDialogVisible && saveDialogStep === 2"
+          v-if="saveDialogVisible && saveDialogStep === 2 && currentResource"
           :cloud-type="currentResource.cloudType"
           @select="handleFolderSelect"
           @close="saveDialogVisible = false"
         />
       </div>
 
-      <div class="dialog-footer">
-        <div class="save-floder-show">
-          <span>保存至</span>
-          <div class="save-floder">
-            <van-icon name="notes-o" /><span>{{
-              currentFolderPath ? currentFolderPath[currentFolderPath.length - 1]?.name : "待选择"
-            }}</span>
+      <!-- 弹窗底部 -->
+      <div class="popup__footer">
+        <div class="footer__path">
+          <span class="path__label">保存至</span>
+          <div class="path__value">
+            <van-icon name="notes-o" />
+            <span>{{ getCurrentFolderName }}</span>
           </div>
         </div>
-        <!-- <van-button class="btn" round @click="saveDialogVisible = false"> 取消 </van-button> -->
-        <van-button class="btn" round type="primary" @click="handleConfirmClick">
+        <van-button round type="primary" block @click="handleConfirmClick">
           {{ saveDialogMap[saveDialogStep].buttonText }}
         </van-button>
-      </div></van-popup
-    >
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, watch, onMounted, onUnmounted, computed } from "vue";
+import { useRouter } from "vue-router";
+import { showToast } from "vant";
 import { useResourceStore } from "@/stores/resource";
-// import { useUserSettingStore } from "@/stores/userSetting";
+import { formattedFileSize } from "@/utils/index";
+import type { Folder, ResourceItem } from "@/types";
 import FolderSelect from "@/components/mobile/FolderSelect.vue";
 import ResourceSelect from "@/components/mobile/ResourceSelect.vue";
-import { formattedFileSize } from "@/utils/index";
-import type { Folder, ResourceItem, TagColor } from "@/types";
-
 import ResourceCard from "@/components/mobile/ResourceCard.vue";
-import { useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
 
+// 状态管理
 const router = useRouter();
 const resourceStore = useResourceStore();
-// const userStore = useUserSettingStore();
+
+// 响应式数据
 const saveDialogVisible = ref(false);
 const currentResource = ref<ResourceItem | null>(null);
 const currentFolderId = ref<string | null>(null);
-const currentFolderPath = ref<null | Folder[]>(null);
+const currentFolderPath = ref<Folder[] | null>(null);
 const saveDialogStep = ref<1 | 2>(1);
 const currentTab = ref<string>("");
 
+// 计算属性
+const getCurrentFolderName = computed(() => {
+  return currentFolderPath.value
+    ? currentFolderPath.value[currentFolderPath.value.length - 1]?.name
+    : "待选择";
+});
+
+// 常量定义
+const saveDialogMap = {
+  1: { title: "选择资源", buttonText: "下一步" },
+  2: { title: "选择保存目录", buttonText: "保存" },
+};
+
+// 标签颜色映射
+const getTagColor = (type?: string) => {
+  const colorMap: Record<string, string> = {
+    pan115: "#07c160",
+    quark: "#1989fa",
+  };
+  return colorMap[type || ""] || "#ff976a";
+};
+
+// 监听器
 watch(
   () => resourceStore.resources,
   () => {
@@ -110,31 +137,22 @@ watch(
   }
 );
 
-const refreshResources = async () => {
+// 方法定义
+const refreshResources = () => {
   resourceStore.searchResources("", false);
-};
-
-const saveDialogMap = {
-  1: {
-    title: "选择资源",
-    buttonText: "下一步",
-  },
-  2: {
-    title: "选择保存目录",
-    buttonText: "保存",
-  },
 };
 
 const handleSave = async (resource: ResourceItem) => {
   currentResource.value = resource;
   saveDialogVisible.value = true;
   saveDialogStep.value = 1;
-  if (!(await resourceStore.getResourceListAndSelect(currentResource.value))) {
+
+  if (!(await resourceStore.getResourceListAndSelect(resource))) {
     saveDialogVisible.value = false;
   }
 };
 
-const handleFolderSelect = async (folders: Folder[]) => {
+const handleFolderSelect = (folders: Folder[]) => {
   if (!currentResource.value) return;
   currentFolderPath.value = folders;
   currentFolderId.value = folders[folders.length - 1]?.cid || "0";
@@ -143,7 +161,7 @@ const handleFolderSelect = async (folders: Folder[]) => {
 const handleConfirmClick = async () => {
   if (saveDialogStep.value === 1) {
     if (!resourceStore.resourceSelect.some((x) => x.isChecked)) {
-      ElMessage.warning("请选择要保存的资源");
+      showToast("请选择要保存的资源");
       return;
     }
     saveDialogStep.value = 2;
@@ -157,7 +175,7 @@ const handleSaveBtnClick = async () => {
   saveDialogVisible.value = false;
   await resourceStore.saveResource(currentResource.value, currentFolderId.value);
 };
-// 添加加载更多处理函数
+
 const handleLoadMore = (channelId: string) => {
   resourceStore.searchResources("", true, channelId);
 };
@@ -166,15 +184,15 @@ const searchMovieforTag = (tag: string) => {
   router.push({ path: "/resource", query: { keyword: tag } });
 };
 
+// 滚动加载
 const doScroll = () => {
-  const scrollHeight = document.documentElement.scrollHeight; // 可滚动区域的高
-  const scrollTop = document.documentElement.scrollTop; // 已经滚动区域的高
-  const clientHeight = document.documentElement.clientHeight; // 可视区高度
-  if (clientHeight + scrollTop >= scrollHeight) {
+  const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
+  if (clientHeight + scrollTop >= scrollHeight - 50) {
     handleLoadMore(currentTab.value);
   }
 };
 
+// 生命周期
 onMounted(() => {
   window.addEventListener("scroll", doScroll);
 });
@@ -184,133 +202,94 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .resource-list {
-  position: relative;
-}
-.resource-list__header {
-  height: 52px;
-  background-color: var(--theme-other_background);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  box-sizing: border-box;
-  border-radius: 15px;
-  padding: 0 15px;
-}
-.my-header {
-  height: 100px;
-  width: 100%;
-  border-bottom: 1px solid #ececec;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  box-sizing: border-box;
-  padding: 0 25px;
-  font-size: 30px;
-  span {
-    margin-left: 5px;
-  }
-}
-.popup-content {
-  height: calc(100% - 200px);
-  width: 100%;
-  overflow: auto;
-  padding: 25px;
-  box-sizing: border-box;
-}
-.header_right {
-  cursor: pointer;
-}
-.refresh_btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0 15px;
-  .item-count {
-    color: #909399;
-    font-size: 0.9em;
-  }
-}
+  &__header {
+    margin-bottom: var(--spacing-base);
 
-.dialog-footer {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  justify-content: space-between;
-  box-sizing: border-box;
-  padding: 15px 25px;
-  box-sizing: border-box;
-  height: 100px;
-  .btn {
-    width: 150px;
-    height: 60px;
-  }
-  .save-floder-show {
-    width: 360px;
-    display: flex;
-    align-items: center;
-    span {
-      font-weight: bold;
-      margin-right: 10px;
-    }
-    .save-floder {
-      width: 280px;
-      height: 40px;
-      padding: 0 10px;
-      box-sizing: border-box;
-      display: inline-flexbox;
+    .header__title {
+      display: flex;
       align-items: center;
-      justify-content: flex-start;
-      line-height: 40px;
-      border-radius: 5px;
-      background-color: #ececec;
-      font-size: 18px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      span {
-        margin-left: 5px;
-        font-weight: unset;
+      gap: var(--spacing-xs);
+      font-size: 14px;
+
+      .title__text {
+        font-weight: 500;
+      }
+
+      .title__time {
+        color: var(--van-gray-6);
+        font-size: 12px;
       }
     }
-    /* width: ; */
   }
 }
 
-.group-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.popup {
+  &__header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--van-gray-3);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
 
-.item-count {
-  color: #909399;
-  font-size: 0.9em;
-}
+    .header__title {
+      font-size: 16px;
+      font-weight: 500;
+    }
 
-:deep(.el-table__expand-column) {
-  .cell {
-    padding: 0 !important;
+    .header__size {
+      color: var(--van-gray-6);
+      font-size: 14px;
+    }
   }
-}
 
-:deep(.el-table__expanded-cell) {
-  padding: 20px !important;
-}
+  &__content {
+    height: calc(100% - 140px);
+    padding: var(--spacing-base);
+    overflow-y: auto;
 
-:deep(.el-table__expand-icon) {
-  height: 23px;
-  line-height: 23px;
-}
-.load-more {
-  display: flex;
-  justify-content: center;
-  padding: 16px 0;
+    .van-loading {
+      margin: var(--spacing-xl) auto;
+    }
+  }
+
+  &__footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: var(--spacing-base);
+    background: var(--theme-other_background);
+    border-top: 1px solid var(--van-gray-3);
+
+    .footer__path {
+      margin-bottom: var(--spacing-base);
+
+      .path__label {
+        font-size: 14px;
+        margin-right: var(--spacing-xs);
+      }
+
+      .path__value {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        background: var(--van-gray-2);
+        border-radius: var(--border-radius-sm);
+        font-size: 14px;
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .van-button {
+      height: 40px;
+      font-size: 14px;
+    }
+  }
 }
 </style>

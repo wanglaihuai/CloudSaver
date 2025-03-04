@@ -1,143 +1,202 @@
 <template>
-  <div class="mobile-pc">
-    <van-search
-      v-model="keyword"
-      shape="round"
-      show-action
-      class="search-input"
-      placeholder="请输入搜索关键词或输入链接直接解析"
-      @search="handleSearch"
-    >
-      <template #action>
-        <van-icon name="contact-o" @click="logout" />
-      </template>
-    </van-search>
-    <div class="content">
-      <router-view />
-    </div>
-  </div>
-  <div v-if="resourcStore.loading" class="page-loading" @touchmove.prevent>
-    <van-loading text-color="#fff">资源搜索中...</van-loading>
-  </div>
-  <van-back-top />
+  <div class="home">
+    <!-- 顶部搜索栏 -->
+    <header class="home__header">
+      <div class="header__wrapper">
+        <van-search
+          v-model="searchForm.keyword"
+          class="header__search"
+          shape="round"
+          placeholder="请输入搜索关键词或输入链接直接解析"
+          @search="handleSearch"
+        />
 
-  <van-tabbar route>
-    <van-tabbar-item replace to="/resource" icon="search"></van-tabbar-item>
-    <van-tabbar-item replace to="/douban" icon="play-circle-o"></van-tabbar-item>
-    <van-tabbar-item replace to="/setting" icon="setting"></van-tabbar-item>
-  </van-tabbar>
-  <!-- <login v-else /> -->
+        <van-icon
+          name="https://b.yzcdn.cn/vant/icon-demo-1126.png"
+          class="header__action"
+          @click="handleLogout"
+        />
+      </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="home__content">
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
+    </main>
+
+    <!-- 底部导航栏 -->
+    <van-tabbar class="home__tabbar" route>
+      <van-tabbar-item to="/resource" icon="search">搜索</van-tabbar-item>
+      <van-tabbar-item to="/douban" icon="video">影视</van-tabbar-item>
+      <van-tabbar-item to="/setting" icon="setting-o">设置</van-tabbar-item>
+    </van-tabbar>
+
+    <!-- 全局加载状态 -->
+    <van-overlay :show="resourceStore.loading" class="home__loading" @touchmove.prevent>
+      <van-loading type="spinner" color="#fff" size="24px"> 资源搜索中... </van-loading>
+    </van-overlay>
+
+    <!-- 返回顶部 -->
+    <van-back-top right="30px" bottom="100px" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { useResourceStore } from "@/stores/resource";
-// import { useStore } from "@/stores/index";
-import { useUserSettingStore } from "@/stores/userSetting";
-import { computed, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { ref, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { showConfirmDialog } from "vant";
-// const store = useStore();
-const route = useRoute();
-const router = useRouter();
-const resourcStore = useResourceStore();
+import { useResourceStore } from "@/stores/resource";
+import { useUserSettingStore } from "@/stores/userSetting";
+
+// 接口定义
+interface SearchForm {
+  keyword: string;
+}
+
+// 状态管理
+const resourceStore = useResourceStore();
 const settingStore = useUserSettingStore();
+
+// 响应式数据
+const searchForm = ref<SearchForm>({
+  keyword: "",
+});
+
+// 路由相关
+const router = useRouter();
+const route = useRoute();
+
+// 初始化
 settingStore.getSettings();
 
-const keyword = ref("");
-const routeKeyword = computed(() => route.query.keyword as string);
-const logout = () => {
-  showConfirmDialog({
-    title: "退出登录",
-    message: "是否确定退出登录？",
-  }).then(() => {
-    // on confirm
-    localStorage.removeItem("token");
-    router.push({ path: "/login" });
-  });
-};
-const handleSearch = async () => {
-  // 如果搜索内容是一个https的链接，则尝试解析链接
-  if (keyword.value.startsWith("http")) {
-    resourcStore.parsingCloudLink(keyword.value);
-    return;
-  }
-  if (!keyword.value.trim()) {
-    return;
-  }
-  console.log(route.path);
-  if (route.path !== "/resource") {
-    router.push({ path: "/resource" });
-  }
-  await resourcStore.searchResources(keyword.value);
-};
-
+// 监听路由参数
 watch(
-  () => routeKeyword.value,
-  () => {
-    if (routeKeyword.value) {
-      console.log("获取路由参数", routeKeyword.value);
-      keyword.value = routeKeyword.value;
+  () => route.query.keyword as string,
+  (keyword) => {
+    if (keyword) {
+      searchForm.value.keyword = keyword;
       handleSearch();
     } else {
-      keyword.value = "";
+      searchForm.value.keyword = "";
     }
   }
 );
+
+// 方法定义
+const handleSearch = async () => {
+  const keyword = searchForm.value.keyword.trim();
+  if (!keyword) return;
+
+  if (keyword.startsWith("http")) {
+    await resourceStore.parsingCloudLink(keyword);
+    return;
+  }
+
+  if (route.path !== "/resource") {
+    await router.push("/resource");
+  }
+  await resourceStore.searchResources(keyword);
+};
+
+const handleLogout = () => {
+  showConfirmDialog({
+    title: "退出登录",
+    message: "确定要退出登录吗？",
+  }).then(() => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  });
+};
 </script>
 
-<style scoped lang="scss">
-.home-pc {
-  // padding: 20px;
-  min-width: 1000px;
-  height: 100vh;
-  overflow: hidden;
-  margin: 0 auto;
+<style lang="scss" scoped>
+.home {
+  // 布局
+  min-height: 100vh;
+  background: var(--theme-background);
+
+  // 头部搜索
+  &__header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--theme-other_background);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+
+    .header__wrapper {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+    }
+
+    .header__search {
+      flex: 1;
+      padding: 0;
+      background: transparent;
+    }
+
+    .header__action {
+      padding: 8px;
+      margin-left: 4px;
+      color: var(--theme-color);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+
+      &:active {
+        color: var(--theme-theme);
+      }
+    }
+  }
+
+  // 主内容区 - 调整顶部间距
+  &__content {
+    padding-top: 64px; // 搜索框高度(48px) + 上下padding(8px * 2)
+    padding-bottom: calc(50px + var(--safe-area-bottom)); // tabbar高度 + 底部安全区域
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  // 加载状态
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+  }
 }
-.home-header {
-  height: auto;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: rgba(231, 235, 239, 0.7) !important;
+
+// 过渡动画
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// 深度修改 Vant 组件样式
+:deep(.van-tabbar) {
+  background: var(--theme-other_background);
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 0 0 5px 5px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
-.home-main {
-  width: 1000px;
-  height: 100vh;
-  overflow: auto;
+
+:deep(.van-tabbar-item) {
+  color: var(--theme-color);
 }
-.home-main-main {
-  padding: 10px 15px;
-}
-.home-aside {
-  width: 300px;
-}
-.search-input {
-  background-color: rgba(231, 235, 239, 0.7) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 999;
-}
-.page-loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.content {
-  padding-top: 120px;
-  padding-bottom: 100px;
+
+:deep(.van-tabbar-item--active) {
+  color: var(--theme-theme);
 }
 </style>
