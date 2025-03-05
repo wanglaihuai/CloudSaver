@@ -23,6 +23,58 @@
   - 支持 PC 端与移动端自适应布局
   - 针对不同设备优化的交互体验
 
+## 产品展示
+
+### PC 端
+
+<div align="center">
+  <img src="./docs/images/pc/login.png" width="800" alt="PC登录页面">
+  <p>登录页面</p>
+</div>
+
+<div align="center">
+  <img src="./docs/images/pc/search.png" width="800" alt="PC资源搜索">
+  <p>资源搜索</p>
+</div>
+
+<div align="center">
+  <img src="./docs/images/pc/detail.png" width="800" alt="PC资源详情">
+  <p>资源详情</p>
+</div>
+
+<div align="center">
+  <img src="./docs/images/pc/save.png" width="800" alt="PC资源转存">
+  <img src="./docs/images/pc/save1.png" width="800" alt="PC资源转存">
+  <p>资源转存</p>
+</div>
+
+<div align="center">
+  <img src="./docs/images/pc/douban.png" width="800" alt="PC豆瓣榜单">
+  <p>豆瓣榜单</p>
+</div>
+
+### 移动端
+
+<div align="center">
+  <div style="display: inline-block; margin: 0 20px;">
+    <img src="./docs/images/mobile/login.png" width="200" alt="移动端登录页面">
+    <p>登录页面</p>
+  </div>
+  <div style="display: inline-block; margin: 0 20px;">
+    <img src="./docs/images/mobile/search.png" width="200" alt="移动端资源搜索">
+    <p>资源搜索</p>
+  </div>
+  <div style="display: inline-block; margin: 0 20px;">
+    <img src="./docs/images/mobile/save.png" width="200" alt="移动端资源转存">
+    <img src="./docs/images/mobile/save1.png" width="200" alt="移动端资源转存">
+    <p>资源转存</p>
+  </div>
+   <div style="display: inline-block; margin: 0 20px;">
+    <img src="./docs/images/mobile/douban.png" width="200" alt="移动端豆瓣榜单">
+    <p>豆瓣榜单</p>
+  </div>
+</div>
+
 ## 技术栈
 
 ### 前端
