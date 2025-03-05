@@ -1,11 +1,9 @@
-import Login from "@/views/mobile/Login.vue";
-import Home from "@/views/mobile/Home.vue";
 import type { RouteRecordRaw } from "vue-router";
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
     name: "home",
-    component: Home,
+    component: () => import("@/views/mobile/Home.vue"),
     redirect: "/resource",
     children: [
       {
@@ -28,7 +26,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/login",
     name: "login",
-    component: Login,
+    component: () => import("@/views/mobile/Login.vue"),
   },
 ];
 
