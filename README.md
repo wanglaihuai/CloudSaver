@@ -1,127 +1,235 @@
 # CloudSaver
 
-一个基于 Vue 3 + Express 的网盘资源搜索与转存工具。
-可通过docker 一键部署。
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Vue](https://img.shields.io/badge/vue-3.x-brightgreen.svg)
+![TypeScript](https://img.shields.io/badge/typescript-5.x-blue.svg)
+[![GitHub Stars](https://img.shields.io/github/stars/jiangrui1994/CloudSaver.svg?style=flat&logo=github)](https://github.com/jiangrui1994/CloudSaver/stargazers)
 
-## 特别声明
-
-1. 此项目仅供学习交流使用，请勿用于非法用途。
-2. 仅支持个人使用，不支持任何形式的 commercial 使用。
-3. 禁止在项目页面上进行任何形式的广告宣传。
-4. 所有搜索到的资源均来自第三方，本项目不对其真实性、合法性做出任何保证。
-
-## 注意事项
-
-1. 此项目的资源搜索需要用到**代理环境**，请自行搭建。
-2. 新用户注册，**管理员**默认注册码：230713；普通用户默认注册码：9527
+一个基于 Vue 3 + Express 的网盘资源搜索与转存工具，支持响应式布局，移动端与PC完美适配，可通过 Docker 一键部署。
 
 ## 功能特性
 
-- 支持多个资源订阅(电报群)源搜索
-- 支持 115 网盘与夸克网盘**一键**资源转存
-- 支持关键词搜索与资源链接解析
-- 支持转存文件夹展示与选择
-- 支持多用户使用
-- 支持豆瓣热门榜单
-- 支持热门榜单资源搜索
-
-## 预览
-
-### 登录/注册
-
-<img src="./docs/images/login.png" width="400">
-<img src="./docs/images/register.png" width="400">
-
-### 最新资源搜索
-
-<img src="./docs/images/search.png" width="400">
-
-### 关键词搜索
-
-<img src="./docs/images/search-movie.png" width="400">
-
-### 热门榜单
-
-<img src="./docs/images/hotmovie.png" width="400">
-
-### 转存
-
-<img src="./docs/images/save.png" width="400">
-
-### 系统设置
-
-<img src="./docs/images/setting.png" width="400">
+- 🔍 多源资源搜索
+  - 支持多个资源订阅源搜索
+  - 支持关键词搜索与资源链接解析
+  - 支持豆瓣热门榜单展示
+- 💾 网盘资源转存
+  - 支持 115 网盘与夸克网盘一键转存
+  - 支持转存文件夹展示与选择
+- 👥 多用户系统
+  - 支持用户注册登录
+  - 支持管理员与普通用户权限区分
+- 📱 响应式设计
+  - 支持 PC 端与移动端自适应布局
+  - 针对不同设备优化的交互体验
 
 ## 技术栈
 
 ### 前端
 
-- Vue 3
-- TypeScript
-- Element Plus
-- Pinia
-- Vue Router
-- Vite
+- 核心框架
+  - Vue 3
+  - TypeScript
+  - Vite
+- 状态管理
+  - Pinia
+- 路由管理
+  - Vue Router
+- UI 组件库
+  - Element Plus (PC)
+  - Vant (Mobile)
+- 工具库
+  - Axios
 
 ### 后端
 
-- Node.js
-- Express
-- TypeScript
-- Sqlite3
-- RSS Parser
+- 运行环境
+  - Node.js
+  - Express
+- 数据存储
+  - SQLite3
 
-## 环境配置
+## 环境要求
 
-### Node.js 版本
+- Node.js >= 18.x
+- pnpm >= 8.x (推荐)
 
-本项目需要 `Node.js` 版本 `18.x` 或更高版本。请确保在运行项目之前安装了正确的版本。
+## 快速开始
 
-推荐使用pnpm进行依赖包安装，默认支持workspace，可以避免版本冲突。
+### 开发环境
 
-### 后端配置项
+1. 克隆项目
 
-复制环境变量模板文件：
-
+```bash
+git clone https://github.com/your-username/CloudSaver.git
+cd CloudSaver
 ```
+
+2. 安装依赖
+
+```bash
+pnpm install
+```
+
+3. 配置环境变量
+
+```bash
 cp .env.example ./backend/.env
 ```
 
-- 根据 `.env.example`文件在 `backend`目录下创建 `.env`文件。
+根据 `.env.example` 文件说明配置必要的环境变量。
 
-## 使用
-
-### 开发环境本地运行
-
-- 安装依赖：`npm run install`
-- 启动开发环境：`npm run dev`
-
-### 打包部署
-
-- 前端打包：`npm run build:frontend` 或者进入前端目录`frontend`，执行 `npm run build`
-- 将前端构建产物`dist`目录下的文件复制到服务器上,例如`nginx`的`html`目录下。
-- 后端服务：先进入后端目录`backend`下`npm run build`构建，然后执行 `npm run start`启动,默认端口为`8009`。
-- 通过`nginx`配置代理服务,将前端api的请求映射到后端服务。
-
-## Docker 部署
-
-- 运行容器：
+4. 启动开发服务器
 
 ```bash
-docker run -d -p 8008:8008 --name cloud-saver ghcr.io/jiangrui1994/cloudsaver
+pnpm dev
 ```
 
-### docker 镜像地址
+### 生产环境部署
 
-[ghcr.io/jiangrui1994/cloudsaver](ghcr.io/jiangrui1994/cloudsaver)
+1. 构建前端
 
-相关nas镜像拉取 可从此地址拉取
+```bash
+pnpm build:frontend
+```
 
-## 交流沟通
+2. 构建后端
 
-<img src="./docs/images/wechat.jpg" width="400">
-<img src="./docs/images/20250220115710.jpg" width="400">
+```bash
+cd backend
+pnpm build
+```
 
-## License
+3. 启动服务
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```bash
+pnpm start
+```
+
+### Docker 部署
+
+#### 单容器部署
+
+稳定版：
+
+```bash
+docker run -d \
+  -p 8008:8008 \
+  -v /your/local/path:/app/data \
+  --name cloud-saver \
+  ghcr.io/jiangrui1994/cloudsaver:latest
+```
+
+测试版（包含最新功能和bug修复，但可能不如稳定版稳定）：
+
+```bash
+docker run -d \
+  -p 8008:8008 \
+  -v /your/local/path:/app/data \
+  --name cloud-saver \
+  ghcr.io/jiangrui1994/cloudsaver:test
+```
+
+#### Docker Compose 部署
+
+创建 `docker-compose.yml` 文件：
+
+稳定版：
+
+```yaml
+version: "3"
+services:
+  cloudsaver:
+    image: ghcr.io/jiangrui1994/cloudsaver:latest
+    container_name: cloud-saver
+    ports:
+      - "8008:8008"
+    volumes:
+      - /your/local/path:/app/data
+    restart: unless-stopped
+```
+
+测试版：
+
+```yaml
+version: "3"
+services:
+  cloudsaver:
+    image: ghcr.io/jiangrui1994/cloudsaver:test
+    container_name: cloud-saver
+    ports:
+      - "8008:8008"
+    volumes:
+      - /your/local/path:/app/data
+    restart: unless-stopped
+```
+
+运行：
+
+```bash
+docker-compose up -d
+```
+
+> **注意**: 测试版（:test标签）包含最新的功能开发和bug修复，但可能存在不稳定因素。建议生产环境使用稳定版（:latest标签）。
+
+## 注意事项
+
+1. 资源搜索需要配置代理环境
+2. 默认注册码
+   - 管理员：230713
+   - 普通用户：9527
+
+## 特别声明
+
+1. 本项目仅供学习交流使用，请勿用于非法用途
+2. 仅支持个人使用，不支持任何形式的商业使用
+3. 禁止在项目页面进行任何形式的广告宣传
+4. 所有搜索到的资源均来自第三方，本项目不对其真实性、合法性做出任何保证
+
+## 贡献指南
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 提交 Pull Request
+
+## 开源协议
+
+本项目基于 MIT 协议开源 - 查看 [LICENSE](LICENSE) 文件了解更多细节
+
+## 联系方式
+
+<div align="center">
+  <div>
+    <img src="./docs/images/wechat.jpg" width="200" alt="微信交流群">
+    <p>微信交流群</p>
+  </div>
+</div>
+
+## 支持项目
+
+如果您觉得这个项目对您有帮助，可以考虑给予一点支持，这将帮助我们持续改进项目 ❤️
+
+您可以：
+
+- ⭐ 给项目点个 Star
+- 🎉 分享给更多有需要的朋友
+- ☕ 请作者喝杯咖啡
+
+<div align="center">
+  <div style="display: inline-block; margin: 0 20px;">
+    <img src="./docs/images/wechat_pay.jpg" width="200" alt="微信打赏">
+    <p>微信打赏</p>
+  </div>
+  <div style="display: inline-block; margin: 0 20px;">
+    <img src="./docs/images/alipay.png" width="200" alt="支付宝打赏">
+    <p>支付宝打赏</p>
+  </div>
+</div>
+
+## 鸣谢
+
+- 👨‍💻 感谢所有为这个项目做出贡献的开发者们！
+- 👥 感谢所有使用本项目并提供反馈的用户！
+- 感谢所有给予支持和鼓励的朋友们！
