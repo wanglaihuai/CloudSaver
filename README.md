@@ -28,50 +28,32 @@
 ### PC 端
 
 <div align="center">
-  <img src="./docs/images/pc/login.png" width="800" alt="PC登录页面">
-  <p>登录页面</p>
+  <img src="./docs/images/pc/login.png" width="400" alt="PC登录页面">
+   <img src="./docs/images/pc/douban.png" width="400" alt="PC豆瓣榜单">
+  <p>登录页面/榜单</p>
 </div>
 
 <div align="center">
-  <img src="./docs/images/pc/search.png" width="800" alt="PC资源搜索">
-  <p>资源搜索</p>
+  <img src="./docs/images/pc/search.png" width="400" alt="PC资源搜索">
+  <img src="./docs/images/pc/detail.png" width="400" alt="PC资源详情">
+  <p>资源搜索/资源详情</p>
 </div>
 
 <div align="center">
-  <img src="./docs/images/pc/detail.png" width="800" alt="PC资源详情">
-  <p>资源详情</p>
-</div>
-
-<div align="center">
-  <img src="./docs/images/pc/save.png" width="800" alt="PC资源转存">
-  <img src="./docs/images/pc/save1.png" width="800" alt="PC资源转存">
+  <img src="./docs/images/pc/save.png" width="400" alt="PC资源转存">
+  <img src="./docs/images/pc/save1.png" width="400" alt="PC资源转存">
   <p>资源转存</p>
 </div>
 
-<div align="center">
-  <img src="./docs/images/pc/douban.png" width="800" alt="PC豆瓣榜单">
-  <p>豆瓣榜单</p>
-</div>
 
 ### 移动端
 
 <div align="center">
   <div style="display: inline-block; margin: 0 20px;">
     <img src="./docs/images/mobile/login.png" width="200" alt="移动端登录页面">
-    <p>登录页面</p>
-  </div>
-  <div style="display: inline-block; margin: 0 20px;">
     <img src="./docs/images/mobile/search.png" width="200" alt="移动端资源搜索">
-    <p>资源搜索</p>
-  </div>
-  <div style="display: inline-block; margin: 0 20px;">
     <img src="./docs/images/mobile/save.png" width="200" alt="移动端资源转存">
     <img src="./docs/images/mobile/save1.png" width="200" alt="移动端资源转存">
-    <p>资源转存</p>
-  </div>
-   <div style="display: inline-block; margin: 0 20px;">
-    <img src="./docs/images/mobile/douban.png" width="200" alt="移动端豆瓣榜单">
-    <p>豆瓣榜单</p>
   </div>
 </div>
 
@@ -271,12 +253,8 @@ docker-compose up -d
 
 <div align="center">
   <div style="display: inline-block; margin: 0 20px;">
-    <img src="./docs/images/wechat_pay.jpg" width="200" alt="微信打赏">
-    <p>微信打赏</p>
-  </div>
-  <div style="display: inline-block; margin: 0 20px;">
-    <img src="./docs/images/alipay.png" width="200" alt="支付宝打赏">
-    <p>支付宝打赏</p>
+    <img src="./docs/images/wechat_pay.jpg" height="300" alt="微信打赏">
+    <img src="./docs/images/alipay.png" height="300" alt="支付宝打赏">
   </div>
 </div>
 
