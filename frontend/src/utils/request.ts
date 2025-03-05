@@ -3,6 +3,7 @@ import { ElMessage } from "element-plus";
 import { isMobileDevice } from "@/utils/index";
 import { showNotify } from "vant";
 import { RequestResult } from "../types/response";
+import { STORAGE_KEYS } from "@/constants/storage";
 
 const errorMessage = (message: string) => {
   if (isMobileDevice()) {
@@ -31,7 +32,7 @@ function isLoginAndRedirect(url: string) {
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else if (!isLoginAndRedirect(config.url || "")) {
@@ -53,7 +54,7 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response.status === 401) {
       errorMessage("登录过期，请重新登录");
-      localStorage.removeItem("token");
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
       window.location.href = "/login";
       return Promise.reject(new Error("登录过期，请重新登录"));
     }

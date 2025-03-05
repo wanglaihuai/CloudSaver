@@ -1,5 +1,9 @@
 import { defineStore } from "pinia";
-import type { UserSettingStore } from "@/types/user";
+import type {
+  UserSettingStore,
+  GlobalSettingAttributes,
+  UserSettingAttributes,
+} from "@/types/user";
 import { settingApi } from "@/api/setting";
 import { ElMessage } from "element-plus";
 
@@ -21,19 +25,20 @@ export const useUserSettingStore = defineStore("user", {
         this.userSettings = data.userSettings;
       }
     },
-    async saveSettings() {
-      if (this.userSettings) {
-        const setting: UserSettingStore = {
-          userSettings: this.userSettings,
-        };
-        if (this.globalSetting) setting.globalSetting = this.globalSetting;
-        const res = await settingApi.saveSetting(setting);
-        if (res) {
-          this.getSettings();
-          ElMessage.success("保存成功");
-        }
+
+    async saveSettings(settings: {
+      globalSetting?: GlobalSettingAttributes | null;
+      userSettings: UserSettingAttributes;
+    }) {
+      try {
+        await settingApi.saveSetting(settings);
+        await this.getSettings();
+      } catch (error) {
+        console.log(error);
+        throw error;
       }
     },
+
     setDisplayStyle(style: "table" | "card") {
       this.displayStyle = style;
       ElMessage.success(`切换成功，当前为${style}模式`);

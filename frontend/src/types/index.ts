@@ -15,6 +15,7 @@ export interface ResourceItem {
 export interface Resource {
   list: ResourceItem[];
   displayList?: boolean;
+  loading?: boolean;
   channelInfo: {
     channelId: string;
     name: string;

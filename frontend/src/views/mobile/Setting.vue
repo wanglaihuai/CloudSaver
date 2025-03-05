@@ -5,23 +5,36 @@
       <div class="setting__title">项目配置</div>
       <div class="setting__card">
         <van-cell-group inset>
-          <van-field v-model="globalSetting.httpProxyHost" label="代理IP" placeholder="127.0.0.1" />
-          <van-field v-model="globalSetting.httpProxyPort" label="代理端口" placeholder="7890" />
           <van-field
-            v-model.number="globalSetting.AdminUserCode"
+            v-model="localGlobalSetting.httpProxyHost"
+            label="代理服务器IP"
+            placeholder="127.0.0.1"
+            @update:model-value="handleProxyHostChange"
+          />
+          <van-field
+            v-model="localGlobalSetting.httpProxyPort"
+            label="代理端口"
+            placeholder="7890"
+          />
+          <van-field
+            v-model.number="localGlobalSetting.AdminUserCode"
             label="管理员码"
             type="digit"
             placeholder="设置管理员注册码"
           />
           <van-field
-            v-model.number="globalSetting.CommonUserCode"
+            v-model.number="localGlobalSetting.CommonUserCode"
             label="用户注册码"
             type="digit"
             placeholder="设置普通用户注册码"
           />
           <van-cell center title="启用代理">
             <template #right-icon>
-              <van-switch v-model="globalSetting.isProxyEnabled" size="24px" />
+              <van-switch
+                v-model="localGlobalSetting.isProxyEnabled"
+                size="24px"
+                @change="handleProxyChange"
+              />
             </template>
           </van-cell>
         </van-cell-group>
@@ -34,7 +47,7 @@
       <div class="setting__card">
         <van-cell-group inset>
           <van-field
-            v-model="settingStore.userSettings.cloud115Cookie"
+            v-model="localUserSettings.cloud115Cookie"
             label="115网盘"
             type="textarea"
             rows="2"
@@ -42,7 +55,7 @@
             placeholder="请输入115网盘Cookie"
           />
           <van-field
-            v-model="settingStore.userSettings.quarkCookie"
+            v-model="localUserSettings.quarkCookie"
             label="夸克网盘"
             type="textarea"
             rows="2"
@@ -56,6 +69,16 @@
       <div class="setting__help">
         <div class="help__title">帮助说明</div>
         <div class="help__links">
+          <van-cell
+            title="CloudSaver部署与使用常见问题"
+            is-link
+            url="https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l?singleDoc=true"
+          />
+          <van-cell
+            title="CloudSaver功能介绍"
+            is-link
+            url="https://www.yuque.com/xiaoruihenbangde/ggogn3/cl2g0p9h3xrgfa5i"
+          />
           <van-cell
             title="如何获取115网盘cookie？"
             is-link
@@ -72,38 +95,92 @@
 
     <!-- 保存按钮 -->
     <div class="setting__submit">
-      <van-button round block type="primary" @click="saveSettings"> 保存设置 </van-button>
+      <van-button round block type="primary" @click="handleSave"> 保存设置 </van-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useUserSettingStore } from "@/stores/userSetting";
-import { computed } from "vue";
+import { ref, watch } from "vue";
 import { showNotify } from "vant";
+import type { GlobalSettingAttributes, UserSettingAttributes } from "@/types/user";
 
 const settingStore = useUserSettingStore();
 
-const globalSetting = computed(
-  () =>
-    settingStore.globalSetting || {
-      httpProxyHost: "127.0.1",
-      httpProxyPort: "7890",
-      isProxyEnabled: false,
-      AdminUserCode: 230713,
-      CommonUserCode: 9527,
+// 本地状态
+const localGlobalSetting = ref<GlobalSettingAttributes>({
+  httpProxyHost: "127.0.0.1",
+  httpProxyPort: "7890",
+  isProxyEnabled: false,
+  AdminUserCode: 230713,
+  CommonUserCode: 9527,
+});
+
+const localUserSettings = ref<UserSettingAttributes>({
+  cloud115Cookie: "",
+  quarkCookie: "",
+});
+
+// 监听 store 变化
+watch(
+  () => settingStore.globalSetting,
+  (newVal) => {
+    if (newVal) {
+      localGlobalSetting.value = { ...newVal };
     }
+  },
+  { immediate: true }
 );
 
+watch(
+  () => settingStore.userSettings,
+  (newVal) => {
+    if (newVal) {
+      localUserSettings.value = { ...newVal };
+    }
+  },
+  { immediate: true }
+);
+
+// 初始化获取设置
 settingStore.getSettings();
 
-const saveSettings = async () => {
+// 处理代理开关变化并立即保存
+const handleProxyChange = async (val: boolean) => {
   try {
-    await settingStore.saveSettings();
+    localGlobalSetting.value.isProxyEnabled = val;
+    await settingStore.saveSettings({
+      globalSetting: localGlobalSetting.value,
+      userSettings: localUserSettings.value,
+    });
+    showNotify({ type: "success", message: "代理设置已更新" });
+  } catch (error) {
+    showNotify({ type: "danger", message: "代理设置更新失败" });
+    // 保存失败时恢复开关状态
+    localGlobalSetting.value.isProxyEnabled = !val;
+  }
+};
+
+// 其他设置的保存
+const handleSave = async () => {
+  try {
+    await settingStore.saveSettings({
+      globalSetting: localGlobalSetting.value,
+      userSettings: localUserSettings.value,
+    });
     showNotify({ type: "success", message: "设置保存成功" });
   } catch (error) {
     showNotify({ type: "danger", message: "设置保存失败" });
   }
+};
+
+// 处理代理地址,去除协议前缀
+const handleProxyHostChange = (val: string) => {
+  // 移除 http:// 或 https:// 前缀
+  const cleanHost = val.replace(/^(https?:\/\/)/i, "");
+  // 更新状态
+  localGlobalSetting.value.httpProxyHost = cleanHost;
 };
 </script>
 

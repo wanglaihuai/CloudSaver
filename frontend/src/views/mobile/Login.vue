@@ -80,6 +80,7 @@ import { showNotify } from "vant";
 import type { FieldInstance } from "vant";
 import { userApi } from "@/api/user";
 import logo from "@/assets/images/logo.png";
+import { STORAGE_KEYS } from "@/constants/storage";
 
 // 类型定义
 interface LoginForm {
@@ -94,7 +95,7 @@ const formData = ref<LoginForm>({
 });
 const isLoading = ref(false);
 const passwordRef = ref<FieldInstance>();
-const rememberPassword = ref(!!localStorage.getItem("rememberedPassword"));
+const rememberPassword = ref(false);
 
 // 工具函数
 const router = useRouter();
@@ -106,13 +107,12 @@ const focusPassword = () => {
 
 // 在组件加载时检查是否有保存的账号密码
 onMounted(() => {
-  if (rememberPassword.value) {
-    const savedUsername = localStorage.getItem("username");
-    const savedPassword = localStorage.getItem("password");
-    if (savedUsername && savedPassword) {
-      formData.value.username = savedUsername;
-      formData.value.password = savedPassword;
-    }
+  const savedUsername = localStorage.getItem(STORAGE_KEYS.USERNAME);
+  const savedPassword = localStorage.getItem(STORAGE_KEYS.PASSWORD);
+  if (savedUsername && savedPassword) {
+    formData.value.username = savedUsername;
+    formData.value.password = savedPassword;
+    rememberPassword.value = true;
   }
 });
 
@@ -124,16 +124,14 @@ const handleSubmit = async () => {
     if (res.code === 0) {
       // 处理记住密码
       if (rememberPassword.value) {
-        localStorage.setItem("username", formData.value.username);
-        localStorage.setItem("password", formData.value.password);
-        localStorage.setItem("rememberedPassword", "true");
+        localStorage.setItem(STORAGE_KEYS.USERNAME, formData.value.username);
+        localStorage.setItem(STORAGE_KEYS.PASSWORD, formData.value.password);
       } else {
-        localStorage.removeItem("username");
-        localStorage.removeItem("password");
-        localStorage.removeItem("rememberedPassword");
+        localStorage.removeItem(STORAGE_KEYS.USERNAME);
+        localStorage.removeItem(STORAGE_KEYS.PASSWORD);
       }
 
-      localStorage.setItem("token", res.data.token);
+      localStorage.setItem(STORAGE_KEYS.TOKEN, res.data.token);
       await router.push("/");
     } else {
       showNotify({

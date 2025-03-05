@@ -61,14 +61,6 @@
               <span v-else>无</span>
             </template>
           </el-table-column>
-
-          <!-- <el-table-column label="地址">
-            <template #default="{ row }">
-              <el-link :href="row.cloudLinks[0]" target="_blank">
-                {{ row.cloudLinks[0] }}
-              </el-link>
-            </template>
-          </el-table-column> -->
           <el-table-column label="云盘类型" width="120">
             <template #default="{ row }">
               <el-tag :type="store.tagColor[row.cloudType as keyof TagColor]" effect="dark" round>
@@ -194,5 +186,11 @@ const searchMovieforTag = (tag: string) => {
   display: flex;
   justify-content: center;
   padding: 16px 0;
+}
+
+.resource-table {
+  position: relative;
+  height: auto;
+  overflow: visible;
 }
 </style>
