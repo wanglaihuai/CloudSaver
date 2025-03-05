@@ -7,7 +7,7 @@
     <main class="login__content">
       <!-- 头部 Logo -->
       <header class="login__header">
-        <img :src="logo" alt="Cloud Saver Logo" class="login__logo" width="50" height="50" />
+        <img :src="logo" alt="Cloud Saver Logo" class="login__logo" width="60" height="60" />
         <h1 class="login__title">Cloud Saver</h1>
       </header>
 
@@ -156,7 +156,6 @@ const handleSubmit = async () => {
 
 <style lang="scss" scoped>
 .login {
-  // 布局
   position: relative;
   height: 100vh;
   width: 100%;
@@ -167,7 +166,8 @@ const handleSubmit = async () => {
     position: absolute;
     inset: 0;
     background: url("@/assets/images/mobile-login-bg.png") no-repeat;
-    background-size: 100% auto;
+    background-size: cover;
+    background-position: center;
   }
 
   // 主内容区
@@ -176,10 +176,10 @@ const handleSubmit = async () => {
     bottom: 0;
     left: 0;
     right: 0;
-    min-height: 60%;
-    padding: var(--spacing-lg);
+    min-height: 65%;
+    padding: 40px 20px;
     background-color: var(--theme-other_background);
-    border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+    border-radius: 24px 24px 0 0;
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(8px);
   }
@@ -189,87 +189,100 @@ const handleSubmit = async () => {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: 40px;
   }
 
   &__logo {
-    width: 50px;
-    height: 50px;
-    margin-right: var(--spacing-base);
+    width: 60px;
+    height: 60px;
+    margin-right: 12px;
     object-fit: contain;
   }
 
   &__title {
     margin: 0;
-    font-size: var(--font-size-xl);
-    font-weight: 700;
+    font-size: 28px;
+    font-weight: 600;
     color: var(--theme-theme);
   }
 
   // 表单
   &__form {
-    padding: 0 var(--spacing-base);
+    padding: 0;
   }
 
   &__form-group {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    border-radius: var(--border-radius-lg);
+    margin: 0 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
     overflow: hidden;
   }
 
   &__submit {
-    margin-top: var(--spacing-xl);
+    margin: 32px 12px 0;
   }
 
   &__button {
-    height: 40px;
-    font-size: 14px;
+    height: 48px;
+    font-size: 16px;
     font-weight: 500;
   }
 
-  // 新增记住密码容器样式
+  // 记住密码区域
   &__remember {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border-top: 1px solid #f5f5f5;
+    padding: 12px 16px;
+    border-top: 0.5px solid #f5f5f5;
   }
 }
 
-// Vant 组件样式覆盖
+// Vant 组件样式优化
 :deep(.van-cell-group--inset) {
   margin: 0;
 }
 
 :deep(.van-field) {
-  padding: var(--spacing-base);
+  padding: 16px;
+
+  .van-field__label {
+    width: 4em;
+    color: var(--theme-color);
+    font-size: 15px;
+  }
+
+  .van-field__value {
+    .van-field__body {
+      input {
+        font-size: 15px;
+      }
+    }
+  }
+
+  .van-field__left-icon {
+    margin-right: 8px;
+    font-size: 18px;
+  }
 }
 
-:deep(.van-field__label) {
-  width: 4em;
-  color: var(--theme-color);
-}
-
-:deep(.van-field__left-icon) {
-  margin-right: var(--spacing-sm);
-}
-
-// 优化记住密码样式
+// 记住密码复选框样式优化
 :deep(.remember-checkbox) {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: 14px;
   color: #666;
 
   .van-checkbox__icon {
-    font-size: 14px;
+    font-size: 16px;
 
     .van-icon {
       border: 1px solid #dcdee0;
+      border-radius: 2px;
       transition: all 0.2s;
     }
   }
 
   .van-checkbox__label {
     margin-left: 6px;
+    line-height: 1;
   }
 
   &.van-checkbox--checked {

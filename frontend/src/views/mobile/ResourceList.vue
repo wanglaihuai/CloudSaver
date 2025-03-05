@@ -1,20 +1,31 @@
 <template>
-  <div class="resource-list">
+  <div ref="listRef" class="resource-list">
     <!-- 头部刷新区 -->
-    <div class="resource-list__header">
-      <van-cell center @click="refreshResources">
+    <van-cell-group :border="false" class="resource-list__header">
+      <van-cell center clickable @click="refreshResources">
+        <template #icon>
+          <van-icon name="replay" class="header__icon" />
+        </template>
         <template #title>
-          <div class="header__title">
-            <van-icon name="replay" size="18" />
-            <span class="title__text">最新资源</span>
-            <span class="title__time">上次刷新：{{ resourceStore.lastUpdateTime }}</span>
+          <div class="header__content">
+            <span class="content__title">最新资源</span>
+            <span class="content__tip">(点击可获取最新资源)</span>
           </div>
         </template>
+        <template #label>
+          <span class="header__time">上次刷新：{{ resourceStore.lastUpdateTime }}</span>
+        </template>
       </van-cell>
-    </div>
+    </van-cell-group>
 
     <!-- 资源列表 -->
-    <van-tabs v-model:active="currentTab" sticky swipeable animated>
+    <van-tabs
+      v-model:active="currentTab"
+      swipeable
+      animated
+      class="resource-list__tabs"
+      :border="false"
+    >
       <van-tab
         v-for="item in resourceStore.resources"
         :key="item.id"
@@ -36,47 +47,74 @@
       closeable
       position="bottom"
       :style="{ height: '80%' }"
+      class="save-popup"
     >
-      <!-- 弹窗头部 -->
-      <div class="popup__header">
-        <van-tag :color="getTagColor(currentResource?.cloudType)" round>
-          {{ currentResource?.cloudType }}
-        </van-tag>
-        <span class="header__title">{{ saveDialogMap[saveDialogStep].title }}</span>
-        <span v-if="resourceStore.shareInfo.fileSize && saveDialogStep === 1" class="header__size">
-          {{ formattedFileSize(resourceStore.shareInfo.fileSize) }}
-        </span>
-      </div>
-
-      <!-- 弹窗内容 -->
-      <div class="popup__content">
-        <van-loading v-if="resourceStore.loadTree" vertical>加载中...</van-loading>
-
-        <resource-select
-          v-if="saveDialogVisible && saveDialogStep === 1 && resourceStore.resourceSelect.length"
-          :cloud-type="currentResource?.cloudType"
-        />
-
-        <folder-select
-          v-if="saveDialogVisible && saveDialogStep === 2 && currentResource"
-          :cloud-type="currentResource.cloudType"
-          @select="handleFolderSelect"
-          @close="saveDialogVisible = false"
-        />
-      </div>
-
-      <!-- 弹窗底部 -->
-      <div class="popup__footer">
-        <div class="footer__path">
-          <span class="path__label">保存至</span>
-          <div class="path__value">
-            <van-icon name="notes-o" />
-            <span>{{ getCurrentFolderName }}</span>
-          </div>
+      <div class="save-popup__container">
+        <!-- 弹窗头部 -->
+        <div class="save-popup__header">
+          <van-tag :color="getTagColor(currentResource?.cloudType)" round size="medium">
+            {{ currentResource?.cloudType }}
+          </van-tag>
+          <span class="header__title">{{ saveDialogMap[saveDialogStep].title }}</span>
+          <span
+            v-if="resourceStore.shareInfo.fileSize && saveDialogStep === 1"
+            class="header__size"
+          >
+            {{ formattedFileSize(resourceStore.shareInfo.fileSize) }}
+          </span>
         </div>
-        <van-button round type="primary" block @click="handleConfirmClick">
-          {{ saveDialogMap[saveDialogStep].buttonText }}
-        </van-button>
+
+        <!-- 弹窗内容 -->
+        <div class="save-popup__content">
+          <van-empty v-if="resourceStore.loadTree && saveDialogStep === 1" class="content__loading">
+            <template #image>
+              <van-loading size="24px" vertical>加载中...</van-loading>
+            </template>
+          </van-empty>
+
+          <resource-select
+            v-if="saveDialogVisible && saveDialogStep === 1 && resourceStore.resourceSelect.length"
+            :cloud-type="currentResource?.cloudType"
+          />
+
+          <folder-select
+            v-if="saveDialogVisible && saveDialogStep === 2 && currentResource"
+            :cloud-type="currentResource.cloudType"
+            @select="handleFolderSelect"
+            @close="saveDialogVisible = false"
+          />
+        </div>
+
+        <!-- 弹窗底部 -->
+        <div class="save-popup__footer">
+          <van-cell class="footer__path" :border="false">
+            <template #title>
+              <div class="path__label">保存至：</div>
+            </template>
+            <template #value>
+              <div class="path__value">
+                <van-icon name="folder-o" class="value__icon" />
+                <span
+                  class="value__text"
+                  :class="{ 'value__text--placeholder': !currentFolderPath }"
+                >
+                  {{ getCurrentFolderName }}
+                </span>
+              </div>
+            </template>
+          </van-cell>
+
+          <van-button
+            round
+            block
+            type="primary"
+            size="large"
+            :loading="isLoading"
+            @click="handleConfirmClick"
+          >
+            {{ saveDialogMap[saveDialogStep].buttonText }}
+          </van-button>
+        </div>
       </div>
     </van-popup>
   </div>
@@ -87,7 +125,7 @@ import { ref, watch, onMounted, onUnmounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { showToast } from "vant";
 import { useResourceStore } from "@/stores/resource";
-import { formattedFileSize } from "@/utils/index";
+import { formattedFileSize, throttle } from "@/utils/index";
 import type { Folder, ResourceItem } from "@/types";
 import FolderSelect from "@/components/mobile/FolderSelect.vue";
 import ResourceSelect from "@/components/mobile/ResourceSelect.vue";
@@ -104,6 +142,8 @@ const currentFolderId = ref<string | null>(null);
 const currentFolderPath = ref<Folder[] | null>(null);
 const saveDialogStep = ref<1 | 2>(1);
 const currentTab = ref<string>("");
+const isLoading = ref(false);
+const listRef = ref<HTMLElement | null>(null);
 
 // 计算属性
 const getCurrentFolderName = computed(() => {
@@ -152,10 +192,10 @@ const handleSave = async (resource: ResourceItem) => {
   }
 };
 
-const handleFolderSelect = (folders: Folder[]) => {
+const handleFolderSelect = (folders: Folder[] | null) => {
   if (!currentResource.value) return;
   currentFolderPath.value = folders;
-  currentFolderId.value = folders[folders.length - 1]?.cid || "0";
+  currentFolderId.value = folders?.[folders.length - 1]?.cid || "0";
 };
 
 const handleConfirmClick = async () => {
@@ -176,62 +216,138 @@ const handleSaveBtnClick = async () => {
   await resourceStore.saveResource(currentResource.value, currentFolderId.value);
 };
 
-const handleLoadMore = (channelId: string) => {
-  resourceStore.searchResources("", true, channelId);
-};
-
 const searchMovieforTag = (tag: string) => {
   router.push({ path: "/resource", query: { keyword: tag } });
 };
 
+// 使用节流包装加载更多函数
+const throttledLoadMore = throttle((channelId: string) => {
+  resourceStore.searchResources("", true, channelId);
+}, 200);
+
 // 滚动加载
 const doScroll = () => {
-  const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
-  if (clientHeight + scrollTop >= scrollHeight - 50) {
-    handleLoadMore(currentTab.value);
+  const appElement = document.querySelector("#app") as HTMLElement;
+  if (appElement) {
+    const { scrollHeight, scrollTop, clientHeight } = appElement;
+    if (scrollHeight - (clientHeight + scrollTop) <= 200) {
+      throttledLoadMore(currentTab.value);
+    }
   }
 };
 
 // 生命周期
 onMounted(() => {
-  window.addEventListener("scroll", doScroll);
+  const appElement = document.querySelector("#app");
+  if (appElement) {
+    appElement.addEventListener("scroll", doScroll);
+  }
 });
 
 onUnmounted(() => {
-  window.removeEventListener("scroll", doScroll);
+  const appElement = document.querySelector("#app");
+  if (appElement) {
+    appElement.removeEventListener("scroll", doScroll);
+  }
+});
+
+// 监听标签页切换
+watch(currentTab, () => {
+  const appElement = document.querySelector("#app");
+  if (appElement) {
+    appElement.scrollTo(0, 0);
+  }
 });
 </script>
 
 <style lang="scss" scoped>
 .resource-list {
-  &__header {
-    margin-bottom: var(--spacing-base);
+  min-height: 100%;
+  background: var(--van-background);
+  padding-bottom: 20px;
 
-    .header__title {
+  &__header {
+    margin-bottom: 8px;
+    background: var(--theme-other_background);
+
+    :deep(.van-cell) {
+      padding: 12px 16px;
+      min-height: 24px;
+    }
+
+    .header__icon {
+      font-size: 30px;
+      color: var(--theme-theme);
+      margin-right: 10px;
+      line-height: 1;
+    }
+
+    .header__content {
       display: flex;
       align-items: center;
-      gap: var(--spacing-xs);
-      font-size: 14px;
+      gap: 6px;
 
-      .title__text {
+      .content__title {
+        font-size: 15px;
         font-weight: 500;
+        line-height: 1.4;
       }
 
-      .title__time {
-        color: var(--van-gray-6);
+      .content__tip {
         font-size: 12px;
+        color: var(--van-gray-6);
+        background: var(--van-gray-1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        line-height: 1.4;
       }
+    }
+
+    .header__time {
+      font-size: 12px;
+      color: var(--van-gray-6);
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+  }
+
+  &__tabs {
+    :deep(.van-tabs__wrap) {
+      background: var(--theme-other_background);
+    }
+
+    :deep(.van-tab) {
+      font-size: 14px;
+      padding: 0 20px;
+      height: 44px;
+      line-height: 44px;
+    }
+
+    :deep(.van-tabs__line) {
+      background: var(--theme-theme);
+    }
+
+    :deep(.van-tabs__content) {
+      padding: 8px 0;
     }
   }
 }
 
-.popup {
+.save-popup {
+  &__container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
   &__header {
-    padding: var(--spacing-lg);
-    border-bottom: 1px solid var(--van-gray-3);
+    flex-shrink: 0;
+    padding: 16px;
+    border-bottom: 0.5px solid var(--van-gray-3);
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: 8px;
+    padding-right: 40px;
 
     .header__title {
       font-size: 16px;
@@ -239,57 +355,114 @@ onUnmounted(() => {
     }
 
     .header__size {
+      margin-left: auto;
+      font-size: 13px;
       color: var(--van-gray-6);
-      font-size: 14px;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 
   &__content {
-    height: calc(100% - 140px);
-    padding: var(--spacing-base);
+    flex: 1;
     overflow-y: auto;
+    background: var(--van-background-2);
 
-    .van-loading {
-      margin: var(--spacing-xl) auto;
+    .content__loading {
+      padding: 32px 0;
     }
   }
 
   &__footer {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: var(--spacing-base);
+    flex-shrink: 0;
+    padding: 12px 16px 16px;
     background: var(--theme-other_background);
-    border-top: 1px solid var(--van-gray-3);
+    border-top: 0.5px solid var(--van-gray-3);
 
     .footer__path {
-      margin-bottom: var(--spacing-base);
+      margin: 0 0 12px;
+
+      :deep(.van-cell__title) {
+        flex: none;
+        padding-right: 8px;
+        display: flex;
+        align-items: center;
+      }
+
+      :deep(.van-cell__value) {
+        flex: 1;
+      }
 
       .path__label {
         font-size: 14px;
-        margin-right: var(--spacing-xs);
+        color: var(--van-text-color);
+        font-weight: 500;
+        white-space: nowrap;
       }
 
       .path__value {
-        display: inline-flex;
+        display: flex;
         align-items: center;
-        gap: var(--spacing-xs);
-        padding: var(--spacing-xs) var(--spacing-sm);
-        background: var(--van-gray-2);
-        border-radius: var(--border-radius-sm);
-        font-size: 14px;
-        max-width: 80%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        gap: 4px;
+        padding: 6px 12px;
+        background: var(--van-gray-1);
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+
+        .value__icon {
+          font-size: 16px;
+          color: var(--theme-theme);
+          flex-shrink: 0;
+        }
+
+        .value__text {
+          font-size: 14px;
+          color: var(--van-text-color);
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          text-align: left;
+          display: block;
+
+          &--placeholder {
+            color: var(--van-gray-6);
+          }
+        }
       }
     }
 
+    :deep(.van-cell__value) {
+      flex: 1;
+      text-align: left;
+    }
+
     .van-button {
-      height: 40px;
-      font-size: 14px;
+      height: 44px;
+      font-size: 16px;
+      font-weight: 500;
     }
   }
+}
+
+// 全局样式优化
+:deep(.van-cell) {
+  padding: 16px 20px;
+
+  &::after {
+    display: none;
+  }
+}
+
+:deep(.van-popup) {
+  max-height: 90vh;
+}
+
+:deep(.van-overlay) {
+  background-color: rgba(0, 0, 0, 0.7);
 }
 </style>

@@ -1,7 +1,12 @@
 <template>
   <div class="mobile-page douban">
+    <!-- 加载状态 -->
+    <div v-if="doubanStore.loading" class="douban__loading">
+      <van-loading type="spinner" size="24px" vertical>加载中...</van-loading>
+    </div>
+
     <!-- 电影列表 -->
-    <div class="douban__grid">
+    <div v-else class="douban__grid">
       <div v-for="movie in doubanStore.hotList" :key="movie.id" class="douban__item">
         <!-- 海报卡片 -->
         <div class="douban__poster">
@@ -37,7 +42,7 @@
     </div>
 
     <!-- 空状态 -->
-    <van-empty v-if="!doubanStore.hotList.length" description="暂无数据" />
+    <van-empty v-if="!doubanStore.loading && !doubanStore.hotList.length" description="暂无数据" />
   </div>
 </template>
 
@@ -172,6 +177,24 @@ const getRateColor = (rate: string | number) => {
       &:active {
         color: var(--theme-theme);
       }
+    }
+  }
+
+  // 加载状态
+  &__loading {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--theme-background);
+    z-index: 1;
+
+    :deep(.van-loading) {
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
+      color: #fff;
     }
   }
 }

@@ -5,6 +5,7 @@ import { ElMessage } from "element-plus";
 
 interface StoreType {
   hotList: HotListItem[];
+  loading: boolean;
   currentParams: CurrentParams;
 }
 
@@ -16,6 +17,7 @@ interface CurrentParams {
 export const useDoubanStore = defineStore("douban", {
   state: (): StoreType => ({
     hotList: [],
+    loading: false,
     currentParams: {
       type: "movie",
       tag: "热门",
@@ -24,6 +26,7 @@ export const useDoubanStore = defineStore("douban", {
 
   actions: {
     async getHotList() {
+      this.loading = true;
       try {
         const params = {
           type: this.currentParams.type,
@@ -40,6 +43,8 @@ export const useDoubanStore = defineStore("douban", {
         }
       } catch (error) {
         ElMessage.error(error || "获取热门列表失败");
+      } finally {
+        this.loading = false;
       }
     },
     setCurrentParams(currentParams: CurrentParams) {

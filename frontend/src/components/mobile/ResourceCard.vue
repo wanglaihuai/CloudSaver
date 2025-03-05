@@ -7,7 +7,7 @@
         <div class="content__image">
           <van-image
             :src="`/tele-images/?url=${encodeURIComponent(item.image as string)}`"
-            fit="contain"
+            fit="cover"
             lazy-load
           />
           <!-- 来源标签移到图片左上角 -->
@@ -125,10 +125,10 @@ const toggleExpand = (id: string) => {
 }
 
 .resource-card {
-  padding: var(--spacing-base);
+  padding: 5px 10px;
 
   &__item {
-    margin-bottom: var(--spacing-base);
+    margin-bottom: 12px;
     background: var(--theme-other_background);
     border-radius: var(--border-radius-lg);
     overflow: hidden;
@@ -138,8 +138,8 @@ const toggleExpand = (id: string) => {
 .item {
   &__content {
     display: flex;
-    gap: var(--spacing-base);
-    padding: var(--spacing-base);
+    gap: 16px;
+    padding: 16px;
   }
 }
 
@@ -240,11 +240,21 @@ const toggleExpand = (id: string) => {
   &__action {
     display: flex;
     justify-content: flex-end;
+    padding: 4px 0;
 
     .van-button {
-      font-size: 12px;
-      height: 24px;
-      padding: 0 12px;
+      font-size: 13px;
+      height: 32px;
+      padding: 0 20px;
+
+      :deep(.van-button__text) {
+        font-weight: 500;
+        font-size: 14px;
+      }
+
+      &:active {
+        opacity: 0.8;
+      }
     }
   }
 }

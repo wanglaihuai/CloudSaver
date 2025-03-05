@@ -31,7 +31,7 @@
     <!-- 底部导航栏 -->
     <van-tabbar class="home__tabbar" route>
       <van-tabbar-item to="/resource" icon="search">搜索</van-tabbar-item>
-      <van-tabbar-item to="/douban" icon="video">影视</van-tabbar-item>
+      <van-tabbar-item to="/douban" icon="video">热门</van-tabbar-item>
       <van-tabbar-item to="/setting" icon="setting-o">设置</van-tabbar-item>
     </van-tabbar>
 
@@ -118,6 +118,8 @@ const handleLogout = () => {
   // 布局
   min-height: 100vh;
   background: var(--theme-background);
+  display: flex;
+  flex-direction: column;
 
   // 头部搜索
   &__header {
@@ -159,9 +161,11 @@ const handleLogout = () => {
   // 主内容区 - 调整顶部间距
   &__content {
     padding-top: 64px; // 搜索框高度(48px) + 上下padding(8px * 2)
-    padding-bottom: calc(50px + var(--safe-area-bottom)); // tabbar高度 + 底部安全区域
-    min-height: 100vh;
+    padding-bottom: 100px; // tabbar高度 + 底部安全区域
     box-sizing: border-box;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   // 加载状态
