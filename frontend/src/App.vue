@@ -7,6 +7,10 @@
 <style>
 #app {
   height: 100vh;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 :root {
   --theme-color: #3e3e3e;
@@ -32,6 +36,13 @@ body {
   color: var(--theme-color);
   background-color: var(--theme-background);
   word-wrap: break-word;
+}
+
+body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* 移动端全局样式 */

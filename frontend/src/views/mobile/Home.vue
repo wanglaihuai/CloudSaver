@@ -164,8 +164,6 @@ const handleLogout = () => {
     padding-bottom: 100px; // tabbar高度 + 底部安全区域
     box-sizing: border-box;
     flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   // 加载状态
