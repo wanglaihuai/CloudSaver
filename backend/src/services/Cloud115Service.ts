@@ -1,7 +1,6 @@
 import { AxiosHeaders, AxiosInstance } from "axios"; // 导入 AxiosHeaders
 import { createAxiosInstance } from "../utils/axiosInstance";
 import { Logger } from "../utils/logger";
-import { config } from "../config/index";
 import { ShareInfoResponse } from "../types/cloud115";
 
 interface Cloud115ListItem {
@@ -128,7 +127,6 @@ export class Cloud115Service {
   }): Promise<{ message: string; data: unknown }> {
     const param = new URLSearchParams({
       cid: params.cid,
-      user_id: config.cloud115.userId,
       share_code: params.shareCode,
       receive_code: params.receiveCode,
       file_id: params.fileId,

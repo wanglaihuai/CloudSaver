@@ -80,8 +80,8 @@ export class Searcher {
     const allResults: any[] = [];
 
     const channelList: any[] = channelId
-      ? config.rss.channels.filter((channel: any) => channel.id === channelId)
-      : config.rss.channels;
+      ? config.telegram.channels.filter((channel: any) => channel.id === channelId)
+      : config.telegram.channels;
 
     // 使用Promise.all进行并行请求
     const searchPromises = channelList.map(async (channel) => {

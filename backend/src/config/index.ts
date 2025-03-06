@@ -11,86 +11,66 @@ interface Channel {
 interface CloudPatterns {
   baiduPan: RegExp;
   tianyi: RegExp;
-  weiyun: RegExp;
   aliyun: RegExp;
   pan115: RegExp;
+  pan123: RegExp;
   quark: RegExp;
+  yidong: RegExp;
 }
 
-interface Cloud115Config {
-  userId: string;
-  cookie: string;
-}
-interface QuarkConfig {
-  userId: string;
-  cookie: string;
-}
-interface HttpProxyConfig {
-  host: string;
-  port: string;
-}
 interface Config {
   jwtSecret: string;
-  registerCode: string;
-  rss: {
+  telegram: {
     baseUrl: string;
     channels: Channel[];
   };
-  telegram: {
-    baseUrl: string;
-  };
-  httpProxy: HttpProxyConfig;
   cloudPatterns: CloudPatterns;
-  cloud115: Cloud115Config;
-  quark: QuarkConfig;
 }
+
+// 从环境变量读取频道配置
+const getTeleChannels = (): Channel[] => {
+  try {
+    const channelsStr = process.env.TELE_CHANNELS;
+    if (channelsStr) {
+      return JSON.parse(channelsStr);
+    }
+  } catch (error) {
+    console.warn("无法解析 TELE_CHANNELS 环境变量，使用默认配置");
+  }
+
+  // 默认配置
+  return [
+    {
+      id: "guaguale115",
+      name: "115网盘资源分享",
+    },
+    {
+      id: "hao115",
+      name: "115网盘资源分享频道",
+    },
+    {
+      id: "yunpanshare",
+      name: "网盘资源收藏(夸克)",
+    },
+  ];
+};
 
 export const config: Config = {
   jwtSecret: process.env.JWT_SECRET || "uV7Y$k92#LkF^q1b!",
-  rss: {
-    baseUrl: process.env.RSS_BASE_URL || "https://rsshub.rssforever.com/telegram/channel",
-    channels: [
-      {
-        id: "guaguale115",
-        name: "115网盘资源分享",
-      },
-      {
-        id: "hao115",
-        name: "115网盘资源分享频道",
-      },
-      {
-        id: "yunpanshare",
-        name: "网盘资源收藏(夸克)",
-      },
-    ],
-  },
-  registerCode: process.env.REGISTER_CODE || "9527",
 
   telegram: {
     baseUrl: process.env.TELEGRAM_BASE_URL || "https://t.me/s",
-  },
-
-  httpProxy: {
-    host: process.env.HTTP_PROXY_HOST || "",
-    port: process.env.HTTP_PROXY_PORT || "",
+    channels: getTeleChannels(),
   },
 
   cloudPatterns: {
     baiduPan: /https?:\/\/(?:pan|yun)\.baidu\.com\/[^\s<>"]+/g,
     tianyi: /https?:\/\/cloud\.189\.cn\/[^\s<>"]+/g,
-    weiyun: /https?:\/\/share\.weiyun\.com\/[^\s<>"]+/g,
-    aliyun: /https?:\/\/\w+\.aliyundrive\.com\/[^\s<>"]+/g,
-    // pan115有两个域名 115.com 和 anxia.com
+    aliyun: /https?:\/\/\w+\.(?:alipan|aliyundrive)\.com\/[^\s<>"]+/g,
+    // pan115有两个域名 115.com 和 anxia.com 和 115cdn.com
     pan115: /https?:\/\/(?:115|anxia|115cdn)\.com\/s\/[^\s<>"]+/g,
+    pan123: /https?:\/\/www\.123pan\.com\/s\/[^\s<>"]+/g,
     quark: /https?:\/\/pan\.quark\.cn\/[^\s<>"]+/g,
-  },
-
-  cloud115: {
-    userId: "",
-    cookie: process.env.CLOUD115_COOKIE || "",
-  },
-  quark: {
-    userId: process.env.QUARK_USER_ID || "",
-    cookie: process.env.QUARK_COOKIE || "",
+    yidong: /https?:\/\/yun\.139\.com\/[^\s<>"]+/g,
   },
 };
