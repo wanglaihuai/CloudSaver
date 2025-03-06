@@ -46,7 +46,7 @@
       round
       closeable
       position="bottom"
-      :style="{ height: '80%' }"
+      :style="{ height: '80%', transform: 'translateZ(1px)' }"
       class="save-popup"
     >
       <div class="save-popup__container">
@@ -338,6 +338,7 @@ watch(currentTab, () => {
     height: 100%;
     display: flex;
     flex-direction: column;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 50px);
   }
 
   &__header {
@@ -380,6 +381,7 @@ watch(currentTab, () => {
     padding: 12px 16px 16px;
     background: var(--theme-other_background);
     border-top: 0.5px solid var(--van-gray-3);
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
 
     .footer__path {
       margin: 0 0 12px;
@@ -446,6 +448,10 @@ watch(currentTab, () => {
       font-size: 16px;
       font-weight: 500;
     }
+  }
+
+  :deep(.van-popup) {
+    z-index: 2001 !important;
   }
 }
 
