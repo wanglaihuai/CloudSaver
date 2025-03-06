@@ -45,7 +45,6 @@
   <p>资源转存</p>
 </div>
 
-
 ### 移动端
 
 <div align="center">
@@ -108,7 +107,7 @@ pnpm install
 3. 配置环境变量
 
 ```bash
-cp .env.example ./backend/.env
+cp ./backend/.env.example ./backend/.env
 ```
 
 根据 `.env.example` 文件说明配置必要的环境变量。
@@ -150,6 +149,7 @@ pnpm start
 docker run -d \
   -p 8008:8008 \
   -v /your/local/path:/app/data \
+  -v /your/local/path/config:/app/config \
   --name cloud-saver \
   ghcr.io/jiangrui1994/cloudsaver:latest
 ```
@@ -160,6 +160,7 @@ docker run -d \
 docker run -d \
   -p 8008:8008 \
   -v /your/local/path:/app/data \
+  -v /your/local/path/config:/app/config \
   --name cloud-saver \
   ghcr.io/jiangrui1994/cloudsaver:test
 ```
@@ -180,6 +181,7 @@ services:
       - "8008:8008"
     volumes:
       - /your/local/path:/app/data
+      - /your/local/path/config:/app/config
     restart: unless-stopped
 ```
 
@@ -195,7 +197,23 @@ services:
       - "8008:8008"
     volumes:
       - /your/local/path:/app/data
+      - /your/local/path/config:/app/config
     restart: unless-stopped
+```
+
+#### /app/config 目录说明
+
+- `env` 文件：包含后端环境变量配置
+
+```bash
+# JWT配置
+JWT_SECRET=your_jwt_secret_here
+
+# Telegram配置
+TELEGRAM_BASE_URL=https://t.me/s
+
+# Telegram频道配置
+TELE_CHANNELS=[{"id":"xxxx","name":"xxxx资源分享"}]
 ```
 
 运行：
@@ -257,7 +275,6 @@ docker-compose up -d
 ## 开源协议
 
 本项目基于 MIT 协议开源 - 查看 [LICENSE](LICENSE) 文件了解更多细节
-
 
 ## 鸣谢
 
