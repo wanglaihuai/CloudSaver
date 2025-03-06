@@ -95,7 +95,7 @@
 1. 克隆项目
 
 ```bash
-git clone https://github.com/your-username/CloudSaver.git
+git clone https://github.com/jiangrui1994/CloudSaver.git
 cd CloudSaver
 ```
 
@@ -213,25 +213,6 @@ docker-compose up -d
    - 管理员：230713
    - 普通用户：9527
 
-## 特别声明
-
-1. 本项目仅供学习交流使用，请勿用于非法用途
-2. 仅支持个人使用，不支持任何形式的商业使用
-3. 禁止在项目页面进行任何形式的广告宣传
-4. 所有搜索到的资源均来自第三方，本项目不对其真实性、合法性做出任何保证
-
-## 贡献指南
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 提交 Pull Request
-
-## 开源协议
-
-本项目基于 MIT 协议开源 - 查看 [LICENSE](LICENSE) 文件了解更多细节
-
 ## 联系方式
 
 <div align="center">
@@ -257,6 +238,26 @@ docker-compose up -d
     <img src="./docs/images/alipay.png" height="300" alt="支付宝打赏">
   </div>
 </div>
+
+## 特别声明
+
+1. 本项目仅供学习交流使用，请勿用于非法用途
+2. 仅支持个人使用，不支持任何形式的商业使用
+3. 禁止在项目页面进行任何形式的广告宣传
+4. 所有搜索到的资源均来自第三方，本项目不对其真实性、合法性做出任何保证
+
+## 贡献指南
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 提交 Pull Request
+
+## 开源协议
+
+本项目基于 MIT 协议开源 - 查看 [LICENSE](LICENSE) 文件了解更多细节
+
 
 ## 鸣谢
 
