@@ -141,6 +141,15 @@ pnpm start
 
 ### Docker 部署
 
+说明：镜像源有**两个地址**供选择，下面部署命令中使用的是dockerhub托管的地址为例，github托管的地址请自行替换
+
+- dockerhub托管：
+  - `jiangrui1994/cloudsaver:latest` 稳定版
+  - `jiangrui1994/cloudsaver:test` 测试版 （包含最新功能和bug修复，但可能不如稳定版稳定）
+- github托管：
+  - `ghcr.io/jiangrui1994/cloudsaver:latest` 稳定版
+  - `ghcr.io/jiangrui1994/cloudsaver:test` 测试版 （包含最新功能和bug修复，但可能不如稳定版稳定）
+
 #### 单容器部署
 
 稳定版：
@@ -151,7 +160,7 @@ docker run -d \
   -v /your/local/path:/app/data \
   -v /your/local/path/config:/app/config \
   --name cloud-saver \
-  ghcr.io/jiangrui1994/cloudsaver:latest
+  jiangrui1994/cloudsaver:latest
 ```
 
 测试版（包含最新功能和bug修复，但可能不如稳定版稳定）：
@@ -162,7 +171,7 @@ docker run -d \
   -v /your/local/path:/app/data \
   -v /your/local/path/config:/app/config \
   --name cloud-saver \
-  ghcr.io/jiangrui1994/cloudsaver:test
+  jiangrui1994/cloudsaver:test
 ```
 
 #### Docker Compose 部署
@@ -175,7 +184,7 @@ docker run -d \
 version: "3"
 services:
   cloudsaver:
-    image: ghcr.io/jiangrui1994/cloudsaver:latest
+    image: jiangrui1994/cloudsaver:latest
     container_name: cloud-saver
     ports:
       - "8008:8008"
@@ -191,7 +200,7 @@ services:
 version: "3"
 services:
   cloudsaver:
-    image: ghcr.io/jiangrui1994/cloudsaver:test
+    image: jiangrui1994/cloudsaver:test
     container_name: cloud-saver
     ports:
       - "8008:8008"
