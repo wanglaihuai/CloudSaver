@@ -12,6 +12,7 @@ jobs:
     env:
       REPO_NAME: ${{ github.repository }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      IMAGE_NAME: cloudsaver
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -51,5 +52,5 @@ jobs:
           tags: |
             ghcr.io/${{ env.LOWER_NAME }}:latest
             ghcr.io/${{ env.LOWER_NAME }}:${{ env.VERSION }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.LOWER_NAME }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.LOWER_NAME }}:${{ env.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
