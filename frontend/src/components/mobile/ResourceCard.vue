@@ -26,8 +26,10 @@
           <!-- 描述 - 添加展开收起功能 -->
           <div
             class="info__desc"
-            :class="{ 'is-expanded': expandedItems[item.id] }"
-            @click="toggleExpand(item.id)"
+            :class="{
+              'is-expanded': expandedItems[(item.messageId || '') + (item.channelId || '')],
+            }"
+            @click="toggleExpand((item.messageId || '') + (item.channelId || ''))"
             v-html="item.content"
           />
 

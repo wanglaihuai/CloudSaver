@@ -56,14 +56,20 @@
     </el-dialog>
 
     <div v-for="group in store.resources" :key="group.id" class="resource-group">
-      <div class="group-header">
+      <div class="group-header" @click="group.displayList = !group.displayList">
         <el-link
           class="group-title"
           :href="`https://t.me/s/${group.id}`"
           target="_blank"
           :underline="false"
+          @click.stop
         >
-          <el-image :src="group.channelInfo.channelLogo" class="channel-logo" fit="cover" lazy />
+          <el-image
+            :src="`/tele-images/?url=${encodeURIComponent(group.channelInfo.channelLogo)}`"
+            class="channel-logo"
+            fit="cover"
+            lazy
+          />
           <span>{{ group.channelInfo.name }}</span>
           <span class="item-count">({{ group.list.length }})</span>
         </el-link>
@@ -91,7 +97,6 @@
                   class="cover-image"
                   :src="`/tele-images/?url=${encodeURIComponent(resource.image as string)}`"
                   fit="cover"
-                  lazy
                   :alt="resource.title"
                   @click="showResourceDetail(resource)"
                 />
