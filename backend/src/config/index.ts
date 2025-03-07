@@ -69,7 +69,7 @@ export const config: Config = {
     aliyun: /https?:\/\/\w+\.(?:alipan|aliyundrive)\.com\/[^\s<>"]+/g,
     // pan115有两个域名 115.com 和 anxia.com 和 115cdn.com
     pan115: /https?:\/\/(?:115|anxia|115cdn)\.com\/s\/[^\s<>"]+/g,
-    pan123: /https?:\/\/www\.123pan\.com\/s\/[^\s<>"]+/g,
+    pan123: /https?:\/\/www\.(?:123pan|123912)\.com\/s\/[^\s<>"]+/g,
     quark: /https?:\/\/pan\.quark\.cn\/[^\s<>"]+/g,
     yidong: /https?:\/\/yun\.139\.com\/[^\s<>"]+/g,
   },
