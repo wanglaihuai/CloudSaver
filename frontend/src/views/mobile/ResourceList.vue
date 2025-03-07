@@ -230,7 +230,7 @@ const doScroll = () => {
   const appElement = document.querySelector("#app") as HTMLElement;
   if (appElement) {
     const { scrollHeight, scrollTop, clientHeight } = appElement;
-    if (scrollHeight - (clientHeight + scrollTop) <= 10) {
+    if (scrollHeight - (clientHeight + scrollTop) <= 0) {
       throttledLoadMore(currentTab.value);
     }
   }
