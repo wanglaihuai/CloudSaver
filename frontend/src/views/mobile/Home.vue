@@ -81,8 +81,14 @@ watch(
       searchForm.value.keyword = keyword;
       handleSearch();
     } else {
-      searchForm.value.keyword = "";
+      searchForm.value.keyword = resourceStore.keyword;
     }
+  }
+);
+watch(
+  () => resourceStore.keyword,
+  (newKeyword) => {
+    searchForm.value.keyword = newKeyword;
   }
 );
 

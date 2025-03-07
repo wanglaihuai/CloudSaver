@@ -83,8 +83,14 @@ watch(
       keyword.value = newKeyword;
       handleSearch();
     } else {
-      keyword.value = "";
+      keyword.value = resourcStore.keyword;
     }
+  }
+);
+watch(
+  () => resourcStore.keyword,
+  (newKeyword) => {
+    keyword.value = newKeyword;
   }
 );
 </script>

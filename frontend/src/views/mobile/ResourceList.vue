@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from "vue";
+import { ref, watch, onMounted, onUnmounted, computed, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { showToast } from "vant";
 import { useResourceStore } from "@/stores/resource";
@@ -223,14 +223,14 @@ const searchMovieforTag = (tag: string) => {
 // 使用节流包装加载更多函数
 const throttledLoadMore = throttle((channelId: string) => {
   resourceStore.searchResources("", true, channelId);
-}, 200);
+}, 2000);
 
 // 滚动加载
 const doScroll = () => {
   const appElement = document.querySelector("#app") as HTMLElement;
   if (appElement) {
     const { scrollHeight, scrollTop, clientHeight } = appElement;
-    if (scrollHeight - (clientHeight + scrollTop) <= 200) {
+    if (scrollHeight - (clientHeight + scrollTop) <= 10) {
       throttledLoadMore(currentTab.value);
     }
   }
@@ -257,6 +257,18 @@ watch(currentTab, () => {
   if (appElement) {
     appElement.scrollTo(0, 0);
   }
+});
+// 页面进入 设置缓存的数据源
+onMounted(() => {
+  const lastResourceList = localStorage.getItem("last_resource_list");
+  if (lastResourceList) {
+    resourceStore.resources = JSON.parse(lastResourceList).list;
+  }
+});
+
+// 页面销毁 清除搜索词
+onBeforeUnmount(() => {
+  resourceStore.keyword = "";
 });
 </script>
 

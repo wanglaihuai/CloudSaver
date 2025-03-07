@@ -142,7 +142,7 @@ import ResourceSelect from "@/components/Home/ResourceSelect.vue";
 import ResourceTable from "@/components/Home/ResourceTable.vue";
 import { formattedFileSize } from "@/utils/index";
 import type { ResourceItem, TagColor } from "@/types";
-
+import { onMounted, onBeforeUnmount } from "vue";
 import ResourceCard from "@/components/Home/ResourceCard.vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
@@ -212,8 +212,20 @@ const handleLoadMore = (channelId: string) => {
 };
 
 const searchMovieforTag = (tag: string) => {
-  router.push({ path: "/", query: { keyword: tag } });
+  router.push({ path: "/resource", query: { keyword: tag } });
 };
+// 页面进入 设置缓存的数据源
+onMounted(() => {
+  const lastResourceList = localStorage.getItem("last_resource_list");
+  if (lastResourceList) {
+    resourceStore.resources = JSON.parse(lastResourceList).list;
+  }
+});
+
+// 页面销毁 清除搜索词
+onBeforeUnmount(() => {
+  resourceStore.keyword = "";
+});
 </script>
 
 <style lang="scss" scoped>
