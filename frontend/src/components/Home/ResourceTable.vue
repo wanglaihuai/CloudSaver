@@ -22,7 +22,11 @@
                 "
                 hide-on-click-modal
                 :preview-src-list="[
-                  `${location.origin}/tele-images/?url=${encodeURIComponent(row.image as string)}`,
+                  `${location.origin}${
+                    userStore.imagesSource === 'proxy'
+                      ? '/tele-images/?url=' + encodeURIComponent(row.image as string)
+                      : row.image
+                  }`,
                 ]"
                 :zoom-rate="1.2"
                 :max-scale="7"

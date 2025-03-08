@@ -12,7 +12,11 @@
         <div class="detail-cover">
           <el-image
             class="cover-image"
-            :src="`/tele-images/?url=${encodeURIComponent(currentResource.image as string)}`"
+            :src="
+              userStore.imagesSource === 'proxy'
+                ? `/tele-images/?url=${encodeURIComponent(currentResource.image as string)}`
+                : currentResource.image
+            "
             fit="cover"
           />
           <el-tag
@@ -73,7 +77,7 @@
             class="channel-logo"
             scroll-container="#pc-resources-content"
             fit="cover"
-            lazy
+            loading="lazy"
           />
           <span>{{ group.channelInfo.name }}</span>
           <span class="item-count">({{ group.list.length }})</span>
@@ -257,6 +261,7 @@ const handleLoadMore = (channelId: string) => {
         border-radius: 50%;
         overflow: hidden;
         box-shadow: var(--theme-shadow-sm);
+        margin-right: 8px;
       }
 
       .item-count {
