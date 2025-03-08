@@ -144,8 +144,8 @@ export const useResourceStore = defineStore("resource", {
           if (data.length === 0) {
             const list = this.resources.find((item) => item.id === channelId)?.list;
             list && list[list.length - 1] && (list[list.length - 1]!.isLastMessage = true);
+            ElMessage.warning("没有更多了~");
           }
-          ElMessage.warning("没有更多了~");
         } else {
           this.resources = data.map((item, index) => ({ ...item, displayList: index === 0 }));
           if (!keyword) {
@@ -161,6 +161,7 @@ export const useResourceStore = defineStore("resource", {
           }
         }
       } catch (error) {
+        console.log(error);
         this.handleError("搜索失败，请重试", null);
       } finally {
         this.loading = false;
