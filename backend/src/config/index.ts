@@ -72,6 +72,6 @@ export const config: Config = {
     // 修改为匹配所有以123开头的域名
     pan123: /https?:\/\/(?:www\.)?123[^\/\s<>"]+\.com\/s\/[^\s<>"]+/g,
     quark: /https?:\/\/pan\.quark\.cn\/[^\s<>"]+/g,
-    yidong: /https?:\/\/yun\.139\.com\/[^\s<>"]+/g,
+    yidong: /https?:\/\/caiyun\.139\.com\/[^\s<>"]+/g,
   },
 };
