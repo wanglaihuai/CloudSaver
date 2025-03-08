@@ -15,6 +15,25 @@
       <div class="header__right">
         <el-tooltip
           effect="dark"
+          :content="
+            userStore.imagesSource === 'local' ? '图片切换到代理模式' : '图片切换到直连模式'
+          "
+          placement="bottom"
+        >
+          <el-button
+            type="text"
+            class="view-toggle"
+            @click="
+              userStore.setImagesSource(userStore.imagesSource === 'proxy' ? 'local' : 'proxy')
+            "
+          >
+            <el-icon>
+              <component :is="userStore.imagesSource === 'proxy' ? 'Guide' : 'Location'" />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+        <el-tooltip
+          effect="dark"
           :content="userStore.displayStyle === 'card' ? '切换到列表视图' : '切换到卡片视图'"
           placement="bottom"
         >
@@ -32,7 +51,7 @@
     </div>
 
     <!-- 资源列表 -->
-    <div ref="contentRef" class="pc-resources__content">
+    <div id="pc-resources-content" ref="contentRef" class="pc-resources__content">
       <component
         :is="userStore.displayStyle === 'table' ? ResourceTable : ResourceCard"
         v-if="resourceStore.resources.length > 0"

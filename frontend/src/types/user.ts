@@ -15,4 +15,5 @@ export interface UserSettingStore {
   globalSetting: GlobalSettingAttributes | null;
   userSettings: UserSettingAttributes;
   displayStyle: "table" | "card";
+  imagesSource: "proxy" | "local";
 }

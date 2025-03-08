@@ -147,7 +147,7 @@ export const useResourceStore = defineStore("resource", {
           }
           ElMessage.warning("没有更多了~");
         } else {
-          this.resources = data.map((item) => ({ ...item, displayList: true }));
+          this.resources = data.map((item, index) => ({ ...item, displayList: index === 0 }));
           if (!keyword) {
             // 获取当前时间字符串 用于存储到本地
             this.lastUpdateTime = new Date().toLocaleString();

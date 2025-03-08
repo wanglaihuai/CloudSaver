@@ -15,7 +15,11 @@
               <el-image
                 v-if="row.image"
                 class="table-item-image"
-                :src="`/tele-images/?url=${encodeURIComponent(row.image as string)}`"
+                :src="
+                  userStore.imagesSource === 'proxy'
+                    ? `/tele-images/?url=${encodeURIComponent(row.image as string)}`
+                    : row.image
+                "
                 hide-on-click-modal
                 :preview-src-list="[
                   `${location.origin}/tele-images/?url=${encodeURIComponent(row.image as string)}`,
@@ -84,7 +88,16 @@
     <el-table-column label="来源" prop="channel">
       <template #default="{ row }">
         <div class="group-header">
-          <el-image :src="row.channelInfo.channelLogo" class="channel-logo" fit="cover" lazy />
+          <el-image
+            :src="
+              userStore.imagesSource === 'proxy'
+                ? `/tele-images/?url=${encodeURIComponent(row.channelInfo.channelLogo as string)}`
+                : row.channelInfo.channelLogo
+            "
+            class="channel-logo"
+            fit="cover"
+            lazy
+          />
           <span>{{ row.channelInfo.name }}</span>
           <span class="item-count">({{ row.list.length }})</span>
         </div>
@@ -97,6 +110,8 @@
 import { useResourceStore } from "@/stores/resource";
 import type { Resource, TagColor } from "@/types";
 import { computed } from "vue";
+import { useUserSettingStore } from "@/stores/userSetting";
+const userStore = useUserSettingStore();
 
 const store = useResourceStore();
 

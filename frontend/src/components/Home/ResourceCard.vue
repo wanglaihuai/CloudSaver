@@ -65,8 +65,13 @@
           @click.stop
         >
           <el-image
-            :src="`/tele-images/?url=${encodeURIComponent(group.channelInfo.channelLogo)}`"
+            :src="
+              userStore.imagesSource === 'proxy'
+                ? `/tele-images/?url=${encodeURIComponent(group.channelInfo.channelLogo)}`
+                : group.channelInfo.channelLogo
+            "
             class="channel-logo"
+            scroll-container="#pc-resources-content"
             fit="cover"
             lazy
           />
@@ -94,8 +99,13 @@
             <div class="card-wrapper">
               <div class="card-cover">
                 <el-image
+                  loading="lazy"
                   class="cover-image"
-                  :src="`/tele-images/?url=${encodeURIComponent(resource.image as string)}`"
+                  :src="
+                    userStore.imagesSource === 'proxy'
+                      ? `/tele-images/?url=${encodeURIComponent(resource.image as string)}`
+                      : resource.image
+                  "
                   fit="cover"
                   :alt="resource.title"
                   @click="showResourceDetail(resource)"
@@ -165,8 +175,11 @@ import { useResourceStore } from "@/stores/resource";
 import { ref } from "vue";
 import type { ResourceItem, TagColor } from "@/types";
 import { ArrowDown, Plus } from "@element-plus/icons-vue";
+import { useUserSettingStore } from "@/stores/userSetting";
 
+const userStore = useUserSettingStore();
 const store = useResourceStore();
+
 const showDetail = ref(false);
 const currentResource = ref<ResourceItem | null>(null);
 
@@ -221,6 +234,15 @@ const handleLoadMore = (channelId: string) => {
     justify-content: space-between;
     padding: 12px 20px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    position: sticky;
+    top: 0;
+    background: var(--theme-card-bg);
+    backdrop-filter: var(--theme-blur);
+    -webkit-backdrop-filter: var(--theme-blur);
+    z-index: 10;
+    border-radius: var(--theme-radius) var(--theme-radius) 0 0;
+    overflow: hidden;
+    cursor: pointer;
 
     .group-title {
       @include flex-center;
