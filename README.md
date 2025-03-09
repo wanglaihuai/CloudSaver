@@ -257,7 +257,7 @@ docker-compose up -d
 
 - ⭐ 给项目点个 Star
 - 🎉 分享给更多有需要的朋友
-- ☕ 请作者喝杯咖啡
+- ☕ 请作者喝瓶可乐🥤或者咖啡☕
 
 <div align="center">
   <div style="display: inline-block; margin: 0 20px;">
