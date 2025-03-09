@@ -14,7 +14,8 @@ export const useUserSettingStore = defineStore("user", {
       cloud115Cookie: "",
       quarkCookie: "",
     },
-    displayStyle: "card",
+    displayStyle: (localStorage.getItem("display_style") as "table" | "card") || "card",
+    imagesSource: (localStorage.getItem("images_source") as "proxy" | "local") || "proxy",
   }),
 
   actions: {
@@ -41,7 +42,14 @@ export const useUserSettingStore = defineStore("user", {
 
     setDisplayStyle(style: "table" | "card") {
       this.displayStyle = style;
-      ElMessage.success(`切换成功，当前为${style}模式`);
+      localStorage.setItem("display_style", style);
+      ElMessage.success(`切换成功，当前为${style === "table" ? "列表" : "卡片"}模式`);
+    },
+
+    setImagesSource(source: "proxy" | "local") {
+      this.imagesSource = source;
+      localStorage.setItem("images_source", source);
+      ElMessage.success(`切换成功，图片模式当前为${source === "proxy" ? "代理" : "直连"}模式`);
     },
   },
 });

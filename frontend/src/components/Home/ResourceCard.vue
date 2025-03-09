@@ -12,7 +12,11 @@
         <div class="detail-cover">
           <el-image
             class="cover-image"
-            :src="`/tele-images/?url=${encodeURIComponent(currentResource.image as string)}`"
+            :src="
+              userStore.imagesSource === 'proxy'
+                ? `/tele-images/?url=${encodeURIComponent(currentResource.image as string)}`
+                : currentResource.image
+            "
             fit="cover"
           />
           <el-tag
@@ -56,14 +60,25 @@
     </el-dialog>
 
     <div v-for="group in store.resources" :key="group.id" class="resource-group">
-      <div class="group-header">
+      <div class="group-header" @click="group.displayList = !group.displayList">
         <el-link
           class="group-title"
           :href="`https://t.me/s/${group.id}`"
           target="_blank"
           :underline="false"
+          @click.stop
         >
-          <el-image :src="group.channelInfo.channelLogo" class="channel-logo" fit="cover" lazy />
+          <el-image
+            :src="
+              userStore.imagesSource === 'proxy'
+                ? `/tele-images/?url=${encodeURIComponent(group.channelInfo.channelLogo)}`
+                : group.channelInfo.channelLogo
+            "
+            class="channel-logo"
+            scroll-container="#pc-resources-content"
+            fit="cover"
+            loading="lazy"
+          />
           <span>{{ group.channelInfo.name }}</span>
           <span class="item-count">({{ group.list.length }})</span>
         </el-link>
@@ -88,10 +103,14 @@
             <div class="card-wrapper">
               <div class="card-cover">
                 <el-image
+                  loading="lazy"
                   class="cover-image"
-                  :src="`/tele-images/?url=${encodeURIComponent(resource.image as string)}`"
+                  :src="
+                    userStore.imagesSource === 'proxy'
+                      ? `/tele-images/?url=${encodeURIComponent(resource.image as string)}`
+                      : resource.image
+                  "
                   fit="cover"
-                  lazy
                   :alt="resource.title"
                   @click="showResourceDetail(resource)"
                 />
@@ -160,8 +179,11 @@ import { useResourceStore } from "@/stores/resource";
 import { ref } from "vue";
 import type { ResourceItem, TagColor } from "@/types";
 import { ArrowDown, Plus } from "@element-plus/icons-vue";
+import { useUserSettingStore } from "@/stores/userSetting";
 
+const userStore = useUserSettingStore();
 const store = useResourceStore();
+
 const showDetail = ref(false);
 const currentResource = ref<ResourceItem | null>(null);
 
@@ -216,6 +238,15 @@ const handleLoadMore = (channelId: string) => {
     justify-content: space-between;
     padding: 12px 20px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    position: sticky;
+    top: 0;
+    background: var(--theme-card-bg);
+    backdrop-filter: var(--theme-blur);
+    -webkit-backdrop-filter: var(--theme-blur);
+    z-index: 10;
+    border-radius: var(--theme-radius) var(--theme-radius) 0 0;
+    overflow: hidden;
+    cursor: pointer;
 
     .group-title {
       @include flex-center;
@@ -230,6 +261,7 @@ const handleLoadMore = (channelId: string) => {
         border-radius: 50%;
         overflow: hidden;
         box-shadow: var(--theme-shadow-sm);
+        margin-right: 8px;
       }
 
       .item-count {

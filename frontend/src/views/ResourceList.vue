@@ -15,6 +15,25 @@
       <div class="header__right">
         <el-tooltip
           effect="dark"
+          :content="
+            userStore.imagesSource === 'local' ? '图片切换到代理模式' : '图片切换到直连模式'
+          "
+          placement="bottom"
+        >
+          <el-button
+            type="text"
+            class="view-toggle"
+            @click="
+              userStore.setImagesSource(userStore.imagesSource === 'proxy' ? 'local' : 'proxy')
+            "
+          >
+            <el-icon>
+              <component :is="userStore.imagesSource === 'proxy' ? 'Guide' : 'Location'" />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+        <el-tooltip
+          effect="dark"
           :content="userStore.displayStyle === 'card' ? '切换到列表视图' : '切换到卡片视图'"
           placement="bottom"
         >
@@ -32,7 +51,7 @@
     </div>
 
     <!-- 资源列表 -->
-    <div ref="contentRef" class="pc-resources__content">
+    <div id="pc-resources-content" ref="contentRef" class="pc-resources__content">
       <component
         :is="userStore.displayStyle === 'table' ? ResourceTable : ResourceCard"
         v-if="resourceStore.resources.length > 0"
@@ -142,7 +161,7 @@ import ResourceSelect from "@/components/Home/ResourceSelect.vue";
 import ResourceTable from "@/components/Home/ResourceTable.vue";
 import { formattedFileSize } from "@/utils/index";
 import type { ResourceItem, TagColor } from "@/types";
-
+import { onMounted, onBeforeUnmount } from "vue";
 import ResourceCard from "@/components/Home/ResourceCard.vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
@@ -212,8 +231,20 @@ const handleLoadMore = (channelId: string) => {
 };
 
 const searchMovieforTag = (tag: string) => {
-  router.push({ path: "/", query: { keyword: tag } });
+  router.push({ path: "/resource", query: { keyword: tag } });
 };
+// 页面进入 设置缓存的数据源
+onMounted(() => {
+  const lastResourceList = localStorage.getItem("last_resource_list");
+  if (lastResourceList) {
+    resourceStore.resources = JSON.parse(lastResourceList).list;
+  }
+});
+
+// 页面销毁 清除搜索词
+onBeforeUnmount(() => {
+  resourceStore.keyword = "";
+});
 </script>
 
 <style lang="scss" scoped>

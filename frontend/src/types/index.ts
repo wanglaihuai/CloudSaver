@@ -10,6 +10,7 @@ export interface ResourceItem {
   pubDate: string;
   cloudType: string;
   messageId?: string;
+  isLastMessage?: boolean;
 }
 
 export interface Resource {

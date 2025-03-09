@@ -100,12 +100,12 @@ export const useResourceStore = defineStore("resource", {
       pan115: "danger",
       quark: "success",
     },
+    keyword: "",
     resources: lastResource.list,
     lastUpdateTime: lastResource.lastUpdateTime || "",
     shareInfo: {} as ShareInfoResponse,
     resourceSelect: [] as ShareInfo[],
     loading: false,
-    lastKeyWord: "",
     backupPlan: false,
     loadTree: false,
   }),
@@ -123,36 +123,45 @@ export const useResourceStore = defineStore("resource", {
         if (isLoadMore) {
           const list = this.resources.find((x) => x.id === channelId)?.list || [];
           lastMessageId = list[list.length - 1].messageId || "";
+          if (list[list.length - 1].isLastMessage) {
+            ElMessage.warning("没有更多了~");
+            return;
+          }
           if (!lastMessageId) {
             ElMessage.error("当次搜索源不支持加载更多");
             return;
           }
-          keyword = this.lastKeyWord;
+          keyword = this.keyword;
         }
         let { data = [] } = await resourceApi.search(keyword || "", channelId, lastMessageId);
+        this.keyword = keyword || "";
         data = data.filter((item) => item.list.length > 0);
-        this.lastKeyWord = keyword || "";
         if (isLoadMore) {
           const findedIndex = this.resources.findIndex((item) => item.id === data[0]?.id);
           if (findedIndex !== -1) {
             this.resources[findedIndex].list.push(...data[0].list);
           }
           if (data.length === 0) {
+            const list = this.resources.find((item) => item.id === channelId)?.list;
+            list && list[list.length - 1] && (list[list.length - 1]!.isLastMessage = true);
             ElMessage.warning("没有更多了~");
           }
         } else {
-          this.resources = data.map((item) => ({ ...item, displayList: true }));
+          this.resources = data.map((item, index) => ({ ...item, displayList: index === 0 }));
+          if (!keyword) {
+            // 获取当前时间字符串 用于存储到本地
+            this.lastUpdateTime = new Date().toLocaleString();
+            localStorage.setItem(
+              "last_resource_list",
+              JSON.stringify({ list: this.resources, lastUpdateTime: this.lastUpdateTime })
+            );
+          }
           if (this.resources.length === 0) {
             ElMessage.warning("未搜索到相关资源");
           }
         }
-        // 获取当前时间字符串 用于存储到本地
-        this.lastUpdateTime = new Date().toLocaleString();
-        localStorage.setItem(
-          "last_resource_list",
-          JSON.stringify({ list: this.resources, lastUpdateTime: this.lastUpdateTime })
-        );
       } catch (error) {
+        console.log(error);
         this.handleError("搜索失败，请重试", null);
       } finally {
         this.loading = false;
