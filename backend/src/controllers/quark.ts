@@ -1,52 +1,42 @@
 import { Request, Response } from "express";
+import { injectable, inject } from "inversify";
+import { TYPES } from "../core/types";
 import { QuarkService } from "../services/QuarkService";
-import { sendSuccess, sendError } from "../utils/response";
-import UserSetting from "../models/UserSetting";
+import { BaseController } from "./BaseController";
+import { sendSuccess } from "../utils/response";
 
-const quark = new QuarkService();
-
-const setCookie = async (req: Request): Promise<void> => {
-  const userId = req.user?.userId;
-  const userSetting = await UserSetting.findOne({
-    where: { userId },
-  });
-  if (userSetting && userSetting.dataValues.quarkCookie) {
-    quark.setCookie(userSetting.dataValues.quarkCookie);
-  } else {
-    throw new Error("请先设置夸克网盘cookie");
+@injectable()
+export class QuarkController extends BaseController {
+  constructor(@inject(TYPES.QuarkService) private quarkService: QuarkService) {
+    super();
   }
-};
 
-export const quarkController = {
   async getShareInfo(req: Request, res: Response): Promise<void> {
-    try {
-      const { pwdId, passcode } = req.query;
-      await setCookie(req);
-      const result = await quark.getShareInfo(pwdId as string, passcode as string);
+    await this.handleRequest(req, res, async () => {
+      const { shareCode, receiveCode } = req.query;
+      await this.quarkService.setCookie(req);
+      const result = await this.quarkService.getShareInfo(
+        shareCode as string,
+        receiveCode as string
+      );
       sendSuccess(res, result);
-    } catch (error) {
-      sendError(res, { message: "获取分享信息失败" });
-    }
-  },
+    });
+  }
 
   async getFolderList(req: Request, res: Response): Promise<void> {
-    try {
+    await this.handleRequest(req, res, async () => {
       const { parentCid } = req.query;
-      await setCookie(req);
-      const result = await quark.getFolderList(parentCid as string);
+      await this.quarkService.setCookie(req);
+      const result = await this.quarkService.getFolderList(parentCid as string);
       sendSuccess(res, result);
-    } catch (error) {
-      sendError(res, { message: (error as Error).message || "获取目录列表失败" });
-    }
-  },
+    });
+  }
 
   async saveFile(req: Request, res: Response): Promise<void> {
-    try {
-      await setCookie(req);
-      const result = await quark.saveSharedFile(req.body);
+    await this.handleRequest(req, res, async () => {
+      await this.quarkService.setCookie(req);
+      const result = await this.quarkService.saveSharedFile(req.body);
       sendSuccess(res, result);
-    } catch (error) {
-      sendError(res, { message: (error as Error).message || "保存文件失败" });
-    }
-  },
-};
+    });
+  }
+}

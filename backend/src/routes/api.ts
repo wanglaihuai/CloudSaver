@@ -1,36 +1,50 @@
-import express from "express";
-import { cloud115Controller } from "../controllers/cloud115";
-import { quarkController } from "../controllers/quark";
-import { resourceController } from "../controllers/resource";
-import { doubanController } from "../controllers/douban";
-import { imageControll } from "../controllers/teleImages";
-import settingRoutes from "./setting";
-import userRoutes from "./user";
+import { Router } from "express";
+import { container } from "../inversify.config";
+import { TYPES } from "../core/types";
+import { Cloud115Controller } from "../controllers/cloud115";
+import { QuarkController } from "../controllers/quark";
+import { ResourceController } from "../controllers/resource";
+import { DoubanController } from "../controllers/douban";
+import { ImageController } from "../controllers/teleImages";
+import { SettingController } from "../controllers/setting";
+import { UserController } from "../controllers/user";
 
-const router = express.Router();
+const router = Router();
+
+// 获取控制器实例
+const cloud115Controller = container.get<Cloud115Controller>(TYPES.Cloud115Controller);
+const quarkController = container.get<QuarkController>(TYPES.QuarkController);
+const resourceController = container.get<ResourceController>(TYPES.ResourceController);
+const doubanController = container.get<DoubanController>(TYPES.DoubanController);
+const imageController = container.get<ImageController>(TYPES.ImageController);
+const settingController = container.get<SettingController>(TYPES.SettingController);
+const userController = container.get<UserController>(TYPES.UserController);
 
 // 用户相关路由
-router.use("/user", userRoutes);
+router.post("/user/login", (req, res) => userController.login(req, res));
+router.post("/user/register", (req, res) => userController.register(req, res));
 
-router.use("/tele-images", imageControll.getImages);
+// 图片相关路由
+router.get("/tele-images", (req, res) => imageController.getImages(req, res));
 
 // 设置相关路由
-router.use("/setting", settingRoutes);
+router.get("/setting/get", (req, res) => settingController.get(req, res));
+router.post("/setting/save", (req, res) => settingController.save(req, res));
 
 // 资源搜索
-router.get("/search", resourceController.search);
+router.get("/search", (req, res) => resourceController.search(req, res));
 
 // 115网盘相关
-router.get("/cloud115/share-info", cloud115Controller.getShareInfo);
-router.get("/cloud115/folders", cloud115Controller.getFolderList);
-router.post("/cloud115/save", cloud115Controller.saveFile);
+router.get("/cloud115/share-info", (req, res) => cloud115Controller.getShareInfo(req, res));
+router.get("/cloud115/folders", (req, res) => cloud115Controller.getFolderList(req, res));
+router.post("/cloud115/save", (req, res) => cloud115Controller.saveFile(req, res));
 
 // 夸克网盘相关
-router.get("/quark/share-info", quarkController.getShareInfo);
-router.get("/quark/folders", quarkController.getFolderList);
-router.post("/quark/save", quarkController.saveFile);
+router.get("/quark/share-info", (req, res) => quarkController.getShareInfo(req, res));
+router.get("/quark/folders", (req, res) => quarkController.getFolderList(req, res));
+router.post("/quark/save", (req, res) => quarkController.saveFile(req, res));
 
 // 获取豆瓣热门列表
-router.get("/douban/hot", doubanController.getDoubanHotList);
+router.get("/douban/hot", (req, res) => doubanController.getDoubanHotList(req, res));
 
 export default router;

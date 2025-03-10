@@ -1,22 +1,25 @@
 import { Request, Response } from "express";
-import DoubanService from "../services/DoubanService";
-import { sendSuccess, sendError } from "../utils/response";
+import { injectable, inject } from "inversify";
+import { TYPES } from "../core/types";
+import { DoubanService } from "../services/DoubanService";
+import { BaseController } from "./BaseController";
 
-const doubanService = new DoubanService();
+@injectable()
+export class DoubanController extends BaseController {
+  constructor(@inject(TYPES.DoubanService) private doubanService: DoubanService) {
+    super();
+  }
 
-export const doubanController = {
   async getDoubanHotList(req: Request, res: Response): Promise<void> {
-    try {
+    await this.handleRequest(req, res, async () => {
       const { type = "movie", tag = "热门", page_limit = "50", page_start = "0" } = req.query;
-      const result = await doubanService.getHotList({
+      const result = await this.doubanService.getHotList({
         type: type as string,
         tag: tag as string,
         page_limit: page_limit as string,
         page_start: page_start as string,
       });
-      sendSuccess(res, result);
-    } catch (error) {
-      sendError(res, { message: "获取热门列表失败" });
-    }
-  },
-};
+      return result;
+    });
+  }
+}

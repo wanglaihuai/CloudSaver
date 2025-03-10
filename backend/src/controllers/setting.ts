@@ -1,59 +1,28 @@
 import { Request, Response } from "express";
-import { sendSuccess, sendError } from "../utils/response";
-import Searcher from "../services/Searcher";
-import UserSetting from "../models/UserSetting";
-import GlobalSetting from "../models/GlobalSetting";
-import { iamgesInstance } from "./teleImages";
+import { injectable, inject } from "inversify";
+import { TYPES } from "../core/types";
+import { SettingService } from "../services/SettingService";
+import { BaseController } from "./BaseController";
 
-export const settingController = {
+@injectable()
+export class SettingController extends BaseController {
+  constructor(@inject(TYPES.SettingService) private settingService: SettingService) {
+    super();
+  }
+
   async get(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      const role = req.user?.role;
-      if (userId !== null) {
-        let userSettings = await UserSetting.findOne({ where: { userId } });
-        if (!userSettings) {
-          userSettings = {
-            userId: userId,
-            cloud115Cookie: "",
-            quarkCookie: "",
-          } as UserSetting;
-          if (userSettings) {
-            await UserSetting.create(userSettings);
-          }
-        }
-        const globalSetting = await GlobalSetting.findOne();
-        sendSuccess(res, {
-          data: {
-            userSettings,
-            globalSetting: role === 1 ? globalSetting : null,
-          },
-        });
-      } else {
-        sendError(res, { message: "用户ID无效" });
-      }
-    } catch (error) {
-      console.log("获取设置失败:" + error);
-      sendError(res, { message: (error as Error).message || "获取设置失败" });
-    }
-  },
+    await this.handleRequest(req, res, async () => {
+      const userId = Number(req.user?.userId);
+      const role = Number(req.user?.role);
+      return await this.settingService.getSettings(userId, role);
+    });
+  }
+
   async save(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      const role = req.user?.role;
-      if (userId !== null) {
-        const { userSettings, globalSetting } = req.body;
-        await UserSetting.update(userSettings, { where: { userId } });
-        if (role === 1 && globalSetting) await GlobalSetting.update(globalSetting, { where: {} });
-        Searcher.updateAxiosInstance();
-        iamgesInstance.updateProxyConfig();
-        sendSuccess(res, {
-          message: "保存成功",
-        });
-      }
-    } catch (error) {
-      console.log("保存设置失败:" + error);
-      sendError(res, { message: (error as Error).message || "保存设置失败" });
-    }
-  },
-};
+    await this.handleRequest(req, res, async () => {
+      const userId = Number(req.user?.userId);
+      const role = Number(req.user?.role);
+      return await this.settingService.saveSettings(userId, role, req.body);
+    });
+  }
+}

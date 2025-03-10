@@ -1,38 +1,21 @@
-type LogLevel = "info" | "success" | "warn" | "error";
+import winston from "winston";
+import { Config } from "../config";
 
-export const Logger = {
-  info(...args: any[]) {
-    this.log("info", ...args);
-  },
+const logger = winston.createLogger({
+  level: Config.app.env === "development" ? "debug" : "info",
+  format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+  transports: [
+    new winston.transports.File({ filename: "logs/error.log", level: "error" }),
+    new winston.transports.File({ filename: "logs/combined.log" }),
+  ],
+});
 
-  success(...args: any[]) {
-    this.log("success", ...args);
-  },
+if (Config.app.env !== "production") {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
+}
 
-  warn(...args: any[]) {
-    this.log("warn", ...args);
-  },
-
-  error(...args: any[]) {
-    this.log("error", ...args);
-  },
-
-  log(level: LogLevel, ...args: any[]) {
-    const timestamp = new Date().toISOString();
-    const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
-
-    switch (level) {
-      case "success":
-        console.log(prefix, ...args);
-        break;
-      case "warn":
-        console.warn(prefix, ...args);
-        break;
-      case "error":
-        console.error(prefix, ...args);
-        break;
-      default:
-        console.log(prefix, ...args);
-    }
-  },
-};
+export { logger };

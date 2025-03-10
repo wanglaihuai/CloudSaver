@@ -1,6 +1,9 @@
 import { AxiosInstance, AxiosHeaders } from "axios";
-import { Logger } from "../utils/logger";
+import { logger } from "../utils/logger";
 import { createAxiosInstance } from "../utils/axiosInstance";
+import { injectable } from "inversify";
+import { Request } from "express";
+import UserSetting from "../models/UserSetting";
 
 interface QuarkShareInfo {
   stoken?: string;
@@ -20,11 +23,12 @@ interface QuarkFolderItem {
   file_type: number;
 }
 
+@injectable()
 export class QuarkService {
   private api: AxiosInstance;
   private cookie: string = "";
 
-  constructor(cookie?: string) {
+  constructor() {
     this.api = createAxiosInstance(
       "https://drive-h.quark.cn",
       AxiosHeaders.from({
@@ -41,19 +45,23 @@ export class QuarkService {
         "sec-fetch-site": "same-site",
       })
     );
-    if (cookie) {
-      this.setCookie(cookie);
-    } else {
-      console.log("请注意:夸克网盘需要提供cookie进行身份验证");
-    }
+
     this.api.interceptors.request.use((config) => {
-      config.headers.cookie = cookie || this.cookie;
+      config.headers.cookie = this.cookie;
       return config;
     });
   }
 
-  public setCookie(cookie: string): void {
-    this.cookie = cookie;
+  async setCookie(req: Request): Promise<void> {
+    const userId = req.user?.userId;
+    const userSetting = await UserSetting.findOne({
+      where: { userId },
+    });
+    if (userSetting && userSetting.dataValues.quarkCookie) {
+      this.cookie = userSetting.dataValues.quarkCookie;
+    } else {
+      throw new Error("请先设置夸克网盘cookie");
+    }
   }
 
   async getShareInfo(pwdId: string, passcode = ""): Promise<{ data: QuarkShareInfo }> {
@@ -148,7 +156,7 @@ export class QuarkService {
       };
     } else {
       const message = "获取夸克目录列表失败:" + response.data.error;
-      Logger.error(message);
+      logger.error(message);
       throw new Error(message);
     }
   }
