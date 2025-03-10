@@ -13,7 +13,6 @@ export function createAxiosInstance(
   proxyConfig?: ProxyConfig
 ): AxiosInstance {
   let agent;
-  console.log(proxyConfig);
   if (useProxy && proxyConfig) {
     agent = tunnel.httpsOverHttp({
       proxy: proxyConfig,
