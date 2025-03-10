@@ -12,8 +12,8 @@ export class UserController extends BaseController {
 
   async register(req: Request, res: Response): Promise<void> {
     await this.handleRequest(req, res, async () => {
-      const { username, password, code } = req.body;
-      return await this.userService.register(username, password, code);
+      const { username, password, registerCode } = req.body;
+      return await this.userService.register(username, password, registerCode);
     });
   }
 

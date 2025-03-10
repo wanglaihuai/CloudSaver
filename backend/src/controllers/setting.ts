@@ -12,7 +12,7 @@ export class SettingController extends BaseController {
 
   async get(req: Request, res: Response): Promise<void> {
     await this.handleRequest(req, res, async () => {
-      const userId = Number(req.user?.userId);
+      const userId = req.user?.userId;
       const role = Number(req.user?.role);
       return await this.settingService.getSettings(userId, role);
     });
@@ -20,7 +20,7 @@ export class SettingController extends BaseController {
 
   async save(req: Request, res: Response): Promise<void> {
     await this.handleRequest(req, res, async () => {
-      const userId = Number(req.user?.userId);
+      const userId = req.user?.userId;
       const role = Number(req.user?.role);
       return await this.settingService.saveSettings(userId, role, req.body);
     });

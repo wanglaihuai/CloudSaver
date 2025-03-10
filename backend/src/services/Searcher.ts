@@ -24,7 +24,7 @@ interface sourceItem {
 @injectable()
 export class Searcher {
   private static instance: Searcher;
-  private api: AxiosInstance;
+  private api: AxiosInstance | null = null;
 
   constructor() {
     this.initAxiosInstance();

@@ -2,9 +2,9 @@ import request from "@/utils/request";
 import type { ShareInfoResponse, Folder, SaveQuarkFileParams } from "@/types";
 
 export const quarkApi = {
-  async getShareInfo(pwdId: string, passcode = "") {
+  async getShareInfo(shareCode: string, receiveCode = "") {
     const { data } = await request.get<ShareInfoResponse>("/api/quark/share-info", {
-      params: { pwdId, passcode },
+      params: { shareCode, receiveCode },
     });
     return data as ShareInfoResponse;
   },

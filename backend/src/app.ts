@@ -7,7 +7,7 @@ import { DatabaseService } from "./services/DatabaseService";
 import { setupMiddlewares } from "./middleware";
 import routes from "./routes/api";
 import { logger } from "./utils/logger";
-
+import { errorHandler } from "./middleware/errorHandler";
 class App {
   private app = express();
   private databaseService = container.get<DatabaseService>(TYPES.DatabaseService);
@@ -22,6 +22,8 @@ class App {
 
     // 设置路由
     this.app.use("/", routes);
+    // 设置错误处理中间件
+    this.app.use(errorHandler);
   }
 
   public async start(): Promise<void> {

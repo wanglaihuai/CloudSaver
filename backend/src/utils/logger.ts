@@ -1,8 +1,8 @@
 import winston from "winston";
-import { Config } from "../config";
+import { config } from "../config";
 
 const logger = winston.createLogger({
-  level: Config.app.env === "development" ? "debug" : "info",
+  level: config.app.env === "development" ? "debug" : "info",
   format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
   transports: [
     new winston.transports.File({ filename: "logs/error.log", level: "error" }),
@@ -10,7 +10,7 @@ const logger = winston.createLogger({
   ],
 });
 
-if (Config.app.env !== "production") {
+if (config.app.env !== "production") {
   logger.add(
     new winston.transports.Console({
       format: winston.format.simple(),

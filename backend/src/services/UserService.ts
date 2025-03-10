@@ -19,7 +19,6 @@ export class UserService {
       globalSetting?.dataValues.CommonUserCode,
       globalSetting?.dataValues.AdminUserCode,
     ];
-
     if (!registerCode || !registerCodeList.includes(Number(registerCode))) {
       throw new Error("注册码错误");
     }

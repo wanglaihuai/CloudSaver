@@ -42,7 +42,7 @@ interface CloudDriveConfig<
 // 云盘类型配置
 export const CLOUD_DRIVES: [
   CloudDriveConfig<{ shareCode: string; receiveCode: string }, Save115FileParams>,
-  CloudDriveConfig<{ pwdId: string }, SaveQuarkFileParams>,
+  CloudDriveConfig<{ shareCode: string }, SaveQuarkFileParams>,
 ] = [
   {
     name: "115网盘",
@@ -71,19 +71,20 @@ export const CLOUD_DRIVES: [
     type: "quark",
     regex: /pan\.quark\.cn\/s\/([a-zA-Z0-9]+)/,
     api: {
-      getShareInfo: (parsedCode: { pwdId: string }) => quarkApi.getShareInfo(parsedCode.pwdId),
+      getShareInfo: (parsedCode: { shareCode: string }) =>
+        quarkApi.getShareInfo(parsedCode.shareCode),
       saveFile: async (params: SaveQuarkFileParams) => {
         return await quarkApi.saveFile(params as SaveQuarkFileParams);
       },
     },
-    parseShareCode: (match: RegExpMatchArray) => ({ pwdId: match[1] }),
+    parseShareCode: (match: RegExpMatchArray) => ({ shareCode: match[1] }),
     getSaveParams: (shareInfo: ShareInfoResponse, folderId: string) => ({
       fid_list: shareInfo.list.map((item: { fileId?: string }) => item.fileId || ""),
       fid_token_list: shareInfo.list.map(
         (item: { fileIdToken?: string }) => item.fileIdToken || ""
       ),
       to_pdir_fid: folderId,
-      pwd_id: shareInfo.pwdId || "",
+      pwd_id: shareInfo.shareCode || "",
       stoken: shareInfo.stoken || "",
       pdir_fid: "0",
       scene: "link",
@@ -190,7 +191,7 @@ export const useResourceStore = defineStore("resource", {
       folderId: string,
       drive:
         | CloudDriveConfig<{ shareCode: string; receiveCode: string }, Save115FileParams>
-        | CloudDriveConfig<{ pwdId: string }, SaveQuarkFileParams>
+        | CloudDriveConfig<{ shareCode: string }, SaveQuarkFileParams>
     ): Promise<void> {
       const link = resource.cloudLinks.find((link) => drive.regex.test(link));
       if (!link) return;
@@ -240,7 +241,7 @@ export const useResourceStore = defineStore("resource", {
           ? await matchedDrive.api.getShareInfo(
               parsedCode as { shareCode: string; receiveCode: string }
             )
-          : await matchedDrive.api.getShareInfo(parsedCode as { pwdId: string });
+          : await matchedDrive.api.getShareInfo(parsedCode as { shareCode: string });
 
         if (Array.isArray(shareInfo)) {
           shareInfo = {
@@ -304,7 +305,7 @@ export const useResourceStore = defineStore("resource", {
       } else {
         shareInfo = this.is115Drive(drive)
           ? await drive.api.getShareInfo(parsedCode as { shareCode: string; receiveCode: string })
-          : await drive.api.getShareInfo(parsedCode as { pwdId: string });
+          : await drive.api.getShareInfo(parsedCode as { shareCode: string });
       }
       this.setLoadTree(false);
       if (shareInfo) {
@@ -337,7 +338,7 @@ export const useResourceStore = defineStore("resource", {
     is115Drive(
       drive:
         | CloudDriveConfig<{ shareCode: string; receiveCode: string }, Save115FileParams>
-        | CloudDriveConfig<{ pwdId: string }, SaveQuarkFileParams>
+        | CloudDriveConfig<{ shareCode: string }, SaveQuarkFileParams>
     ): drive is CloudDriveConfig<{ shareCode: string; receiveCode: string }, Save115FileParams> {
       return drive.type === "pan115";
     },

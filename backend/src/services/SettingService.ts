@@ -5,7 +5,7 @@ import { Searcher } from "./Searcher";
 
 @injectable()
 export class SettingService {
-  async getSettings(userId: number | undefined, role: number | undefined) {
+  async getSettings(userId: string | undefined, role: number | undefined) {
     if (!userId) {
       throw new Error("用户ID无效");
     }
@@ -28,7 +28,7 @@ export class SettingService {
     };
   }
 
-  async saveSettings(userId: number | undefined, role: number | undefined, settings: any) {
+  async saveSettings(userId: string | undefined, role: number | undefined, settings: any) {
     if (!userId) {
       throw new Error("用户ID无效");
     }
