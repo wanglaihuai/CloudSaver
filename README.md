@@ -7,6 +7,8 @@
 
 一个基于 Vue 3 + Express 的网盘资源搜索与转存工具，支持响应式布局，移动端与PC完美适配，可通过 Docker 一键部署。
 
+官方Telegram群组：[https://t.me/cloud_saver](https://t.me/cloud_saver)
+
 ## 功能特性
 
 - 🔍 多源资源搜索
