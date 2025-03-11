@@ -31,9 +31,12 @@ export class Searcher {
     Searcher.instance = this;
   }
 
-  private async initAxiosInstance() {
-    const settings = await GlobalSetting.findOne();
-    const globalSetting = settings?.dataValues || ({} as GlobalSettingAttributes);
+  private async initAxiosInstance(isUpdate: boolean = false) {
+    let globalSetting = {} as GlobalSettingAttributes;
+    if (isUpdate) {
+      const settings = await GlobalSetting.findOne();
+      globalSetting = settings?.dataValues || ({} as GlobalSettingAttributes);
+    }
     this.api = createAxiosInstance(
       config.telegram.baseUrl,
       AxiosHeaders.from({
@@ -59,9 +62,7 @@ export class Searcher {
   }
 
   public static async updateAxiosInstance(): Promise<void> {
-    if (Searcher.instance) {
-      await Searcher.instance.initAxiosInstance();
-    }
+    await Searcher.instance.initAxiosInstance(true);
   }
 
   private extractCloudLinks(text: string): { links: string[]; cloudType: string } {

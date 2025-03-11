@@ -1,10 +1,14 @@
-import { injectable } from "inversify";
+import { injectable, inject } from "inversify";
+import { TYPES } from "../core/types";
 import UserSetting from "../models/UserSetting";
 import GlobalSetting from "../models/GlobalSetting";
 import { Searcher } from "./Searcher";
+import { ImageService } from "./ImageService";
 
 @injectable()
 export class SettingService {
+  constructor(@inject(TYPES.ImageService) private imageService: ImageService) {}
+
   async getSettings(userId: string | undefined, role: number | undefined) {
     if (!userId) {
       throw new Error("用户ID无效");
@@ -39,8 +43,17 @@ export class SettingService {
     if (role === 1 && globalSetting) {
       await GlobalSetting.update(globalSetting, { where: {} });
     }
-
-    await Searcher.updateAxiosInstance();
+    await this.updateSettings();
     return { message: "保存成功" };
+  }
+
+  async updateSettings(/* 参数 */): Promise<void> {
+    // ... 其他代码 ...
+
+    // 修改这一行，使用注入的实例方法而不是静态方法
+    await this.imageService.updateAxiosInstance();
+    await Searcher.updateAxiosInstance();
+
+    // ... 其他代码 ...
   }
 }

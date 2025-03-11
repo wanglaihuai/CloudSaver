@@ -1,10 +1,10 @@
 import { AxiosHeaders, AxiosInstance } from "axios"; // 导入 AxiosHeaders
 import { createAxiosInstance } from "../utils/axiosInstance";
-import { ShareInfoResponse } from "../types/cloud115";
+import { ShareInfoResponse, FolderListResponse, SaveFileParams } from "../types/cloud";
 import { injectable } from "inversify";
 import { Request } from "express";
 import UserSetting from "../models/UserSetting";
-import { ICloudService } from "../types/services";
+import { ICloudStorageService } from "@/types/services";
 import { logger } from "../utils/logger";
 
 interface Cloud115ListItem {
@@ -19,13 +19,8 @@ interface Cloud115FolderItem {
   ns: number;
 }
 
-interface Cloud115PathItem {
-  cid: string;
-  name: string;
-}
-
 @injectable()
-export class Cloud115Service implements ICloudService {
+export class Cloud115Service implements ICloudStorageService {
   private api: AxiosInstance;
   private cookie: string = "";
 
@@ -80,19 +75,21 @@ export class Cloud115Service implements ICloudService {
     });
     if (response.data?.state && response.data.data?.list?.length > 0) {
       return {
-        data: response.data.data.list.map((item: Cloud115ListItem) => ({
-          fileId: item.cid,
-          fileName: item.n,
-          fileSize: item.s,
-        })),
+        data: {
+          list: response.data.data.list.map((item: Cloud115ListItem) => ({
+            fileId: item.cid,
+            fileName: item.n,
+            fileSize: item.s,
+          })),
+        },
       };
+    } else {
+      logger.error("未找到文件信息:", response.data);
+      throw new Error("未找到文件信息");
     }
-    throw new Error("未找到文件信息");
   }
 
-  async getFolderList(
-    parentCid = "0"
-  ): Promise<{ data: { cid: string; name: string; path: Cloud115PathItem[] }[] }> {
+  async getFolderList(parentCid = "0"): Promise<FolderListResponse> {
     const response = await this.api.get("/files", {
       params: {
         aid: 1,
@@ -128,17 +125,12 @@ export class Cloud115Service implements ICloudService {
     }
   }
 
-  async saveSharedFile(params: {
-    cid: string;
-    shareCode: string;
-    receiveCode: string;
-    fileId: string;
-  }): Promise<{ message: string; data: unknown }> {
+  async saveSharedFile(params: SaveFileParams): Promise<{ message: string; data: unknown }> {
     const param = new URLSearchParams({
-      cid: params.cid,
-      share_code: params.shareCode,
-      receive_code: params.receiveCode,
-      file_id: params.fileId,
+      cid: params.folderId || "",
+      share_code: params.shareCode || "",
+      receive_code: params.receiveCode || "",
+      file_id: params.fids?.[0] || "",
     });
     const response = await this.api.post("/share/receive", param.toString());
     logger.info("保存文件:", response.data);

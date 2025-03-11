@@ -33,13 +33,25 @@ export interface ShareInfo {
   isChecked?: boolean;
 }
 
+export interface ShareInfoItem {
+  fileId: string;
+  fileName: string;
+  fileSize?: number;
+  fileIdToken?: string;
+}
+
 export interface ShareInfoResponse {
-  list: ShareInfo[];
+  list: ShareInfoItem[];
+  fileSize?: number;
   pwdId?: string;
   stoken?: string;
-  shareCode?: string;
+}
+
+export interface ShareFileInfoAndFolder {
+  shareInfo: ShareInfoResponse;
+  folderId: string;
+  shareCode: string;
   receiveCode?: string;
-  fileSize?: number;
 }
 
 export interface Folder {
@@ -49,10 +61,16 @@ export interface Folder {
 }
 
 export interface SaveFileParams {
+  shareCode: string; // 分享code
+  receiveCode?: string; // 分享文件的密码
+  folderId: string; // 文件夹id
+  fids: string[]; // 存储文件id
+  fidTokens?: string[]; // 存储文件token
+}
+
+export interface GetShareInfoParams {
   shareCode: string;
-  receiveCode: string;
-  fileId: string;
-  folderId: string;
+  receiveCode?: string;
 }
 
 export interface ApiResponse<T = unknown> {

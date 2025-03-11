@@ -12,8 +12,19 @@ export class ImageController extends BaseController {
 
   async getImages(req: Request, res: Response): Promise<void> {
     await this.handleRequest(req, res, async () => {
-      const url = req.query.url as string;
-      return await this.imageService.getImages(url);
+      const url = decodeURIComponent((req.query.url as string) || "");
+      const response = await this.imageService.getImages(url);
+
+      // 设置正确的响应头
+      res.setHeader("Content-Type", response.headers["content-type"]);
+      res.setHeader("Cache-Control", "no-cache");
+
+      // 确保清除任何可能导致304响应的头信息
+      res.removeHeader("etag");
+      res.removeHeader("last-modified");
+
+      // 直接传输图片数据
+      response.data.pipe(res);
     });
   }
 }
