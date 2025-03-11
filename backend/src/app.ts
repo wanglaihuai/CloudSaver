@@ -1,7 +1,7 @@
 // filepath: /d:/code/CloudDiskDown/backend/src/app.ts
 import "./types/express";
 import express from "express";
-import { container } from "./core/container";
+import { container } from "./inversify.config";
 import { TYPES } from "./core/types";
 import { DatabaseService } from "./services/DatabaseService";
 import { setupMiddlewares } from "./middleware";
@@ -22,7 +22,6 @@ class App {
 
     // 设置路由
     this.app.use("/", routes);
-    // 设置错误处理中间件
     this.app.use(errorHandler);
   }
 
