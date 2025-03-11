@@ -78,7 +78,8 @@
           </el-table-column>
           <el-table-column label="操作" width="180">
             <template #default="{ row }">
-              <el-button @click="handleSave(row)">转存</el-button>
+              <el-button type="primary" plain @click="handleJump(row)">跳转</el-button>
+              <el-button v-if="row.isSupportSave" @click="handleSave(row)">转存</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -118,13 +119,16 @@ import { useUserSettingStore } from "@/stores/userSetting";
 const userStore = useUserSettingStore();
 
 const store = useResourceStore();
-
-const emit = defineEmits(["save", "loadMore", "searchMovieforTag"]);
+const emit = defineEmits(["save", "loadMore", "searchMovieforTag", "jump"]);
 
 const location = computed(() => window.location);
 
 const handleSave = (resource: Resource) => {
   emit("save", resource);
+};
+
+const handleJump = (resource: Resource) => {
+  emit("jump", resource);
 };
 
 // 添加加载更多处理函数

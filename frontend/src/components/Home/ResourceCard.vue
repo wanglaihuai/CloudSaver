@@ -52,7 +52,13 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="currentResource && handleSave(currentResource)"
+          <el-button type="primary" plain @click="currentResource && handleJump(currentResource)"
+            >跳转</el-button
+          >
+          <el-button
+            v-if="currentResource?.isSupportSave"
+            type="primary"
+            @click="currentResource && handleSave(currentResource)"
             >转存</el-button
           >
         </div>
@@ -60,7 +66,10 @@
     </el-dialog>
 
     <div v-for="group in store.resources" :key="group.id" class="resource-group">
-      <div class="group-header" @click="group.displayList = !group.displayList">
+      <div
+        :class="{ 'group-header': true, 'is-active': group.displayList }"
+        @click="group.displayList = !group.displayList"
+      >
         <el-link
           class="group-title"
           :href="`https://t.me/s/${group.id}`"
@@ -84,7 +93,7 @@
         </el-link>
 
         <el-tooltip effect="dark" :content="group.displayList ? '收起' : '展开'" placement="top">
-          <el-button class="toggle-btn" type="text" @click="group.displayList = !group.displayList">
+          <el-button class="toggle-btn" type="text">
             <el-icon :class="{ 'is-active': group.displayList }">
               <ArrowDown />
             </el-icon>
@@ -156,7 +165,13 @@
                 </div>
 
                 <div class="card-footer">
-                  <el-button type="primary" @click="handleSave(resource)">转存</el-button>
+                  <el-button type="primary" plain @click="handleJump(resource)">跳转</el-button>
+                  <el-button
+                    v-if="resource.isSupportSave"
+                    type="primary"
+                    @click="handleSave(resource)"
+                    >转存</el-button
+                  >
                 </div>
               </div>
             </div>
@@ -187,13 +202,17 @@ const store = useResourceStore();
 const showDetail = ref(false);
 const currentResource = ref<ResourceItem | null>(null);
 
-const emit = defineEmits(["save", "loadMore", "searchMovieforTag"]);
+const emit = defineEmits(["save", "loadMore", "jump", "searchMovieforTag"]);
 
 const handleSave = (resource: ResourceItem) => {
   if (showDetail.value) {
     showDetail.value = false;
   }
   emit("save", resource);
+};
+
+const handleJump = (resource: ResourceItem) => {
+  emit("jump", resource);
 };
 
 const showResourceDetail = (resource: ResourceItem) => {
@@ -244,9 +263,13 @@ const handleLoadMore = (channelId: string) => {
     backdrop-filter: var(--theme-blur);
     -webkit-backdrop-filter: var(--theme-blur);
     z-index: 10;
-    border-radius: var(--theme-radius) var(--theme-radius) 0 0;
+    border-radius: var(--theme-radius);
     overflow: hidden;
     cursor: pointer;
+
+    &.is-active {
+      border-radius: var(--theme-radius) var(--theme-radius) 0 0;
+    }
 
     .group-title {
       @include flex-center;

@@ -11,6 +11,7 @@ export interface ResourceItem {
   cloudType: string;
   messageId?: string;
   isLastMessage?: boolean;
+  isSupportSave?: boolean;
 }
 
 export interface Resource {

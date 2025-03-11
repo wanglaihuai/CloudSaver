@@ -50,9 +50,17 @@
 
             <!-- 转存按钮 -->
             <div class="info__action">
-              <van-button type="primary" size="mini" round @click="handleSave(item)">
-                转存
+              <van-button type="primary" size="mini" round plain @click="handleJump(item)">
+                跳转
               </van-button>
+              <van-button
+                v-if="item.isSupportSave"
+                type="primary"
+                size="mini"
+                round
+                @click="handleSave(item)"
+                >转存</van-button
+              >
             </div>
           </div>
         </div>
@@ -74,6 +82,7 @@ const props = defineProps<{
 // 事件定义
 const emit = defineEmits<{
   (e: "save", resource: ResourceItem): void;
+  (e: "jump", resource: ResourceItem): void;
   (e: "searchMovieforTag", tag: string): void;
 }>();
 
@@ -100,6 +109,9 @@ const handleSave = (resource: ResourceItem) => {
   emit("save", resource);
 };
 
+const handleJump = (resource: ResourceItem) => {
+  emit("jump", resource);
+};
 const openUrl = (url: string) => {
   window.open(url);
 };

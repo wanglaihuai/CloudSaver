@@ -128,7 +128,16 @@ export const useResourceStore = defineStore("resource", {
         }
         let { data = [] } = await resourceApi.search(keyword || "", channelId, lastMessageId);
         this.keyword = keyword || "";
-        data = data.filter((item) => item.list.length > 0);
+        data = data
+          .filter((item) => item.list.length > 0)
+          .map((x) => ({
+            ...x,
+            list: x.list.map((item) => ({
+              ...item,
+              isSupportSave: CLOUD_DRIVES.some((drive) => drive.regex.test(item.cloudLinks[0])),
+            })),
+          }));
+        console.log(data);
         if (isLoadMore) {
           const findedIndex = this.resources.findIndex((item) => item.id === data[0]?.id);
           if (findedIndex !== -1) {

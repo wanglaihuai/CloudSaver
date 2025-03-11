@@ -56,6 +56,7 @@
         :is="userStore.displayStyle === 'table' ? ResourceTable : ResourceCard"
         v-if="resourceStore.resources.length > 0"
         @load-more="handleLoadMore"
+        @jump="handleJump"
         @search-moviefor-tag="searchMovieforTag"
         @save="handleSave"
       />
@@ -228,6 +229,10 @@ const setDisplayStyle = (style: string) => {
 // 添加加载更多处理函数
 const handleLoadMore = (channelId: string) => {
   resourceStore.searchResources("", true, channelId);
+};
+
+const handleJump = (resource: ResourceItem) => {
+  window.open(resource.cloudLinks[0], "_blank");
 };
 
 const searchMovieforTag = (tag: string) => {

@@ -35,6 +35,7 @@
         <ResourceCard
           :current-channel-id="currentTab"
           @save="handleSave"
+          @jump="handleJump"
           @search-moviefor-tag="searchMovieforTag"
         />
       </van-tab>
@@ -190,6 +191,10 @@ const handleSave = async (resource: ResourceItem) => {
   if (!(await resourceStore.getResourceListAndSelect(resource))) {
     saveDialogVisible.value = false;
   }
+};
+
+const handleJump = (resource: ResourceItem) => {
+  window.open(resource.cloudLinks[0], "_blank");
 };
 
 const handleFolderSelect = (folders: Folder[] | null) => {
