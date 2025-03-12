@@ -19,7 +19,7 @@
         <!-- 右侧信息 -->
         <div class="content__info">
           <!-- 标题 -->
-          <div class="info__title" @click="openUrl(item.cloudLinks[0])">
+          <div class="info__title" @click="copyUrl(item.cloudLinks[0])">
             {{ item.title }}
           </div>
 
@@ -72,6 +72,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useResourceStore } from "@/stores/resource";
+import { showNotify } from "vant";
 import type { ResourceItem } from "@/types";
 
 // Props 定义
@@ -112,8 +113,29 @@ const handleSave = (resource: ResourceItem) => {
 const handleJump = (resource: ResourceItem) => {
   emit("jump", resource);
 };
-const openUrl = (url: string) => {
-  window.open(url);
+
+const copyUrl = async (url: string) => {
+  try {
+    await navigator.clipboard.writeText(url);
+    showNotify({
+      type: "success",
+      message: "链接已复制到剪贴板",
+      duration: 1500,
+    });
+  } catch (err) {
+    const input = document.createElement("input");
+    input.value = url;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    document.body.removeChild(input);
+
+    showNotify({
+      type: "success",
+      message: "链接已复制到剪贴板",
+      duration: 1500,
+    });
+  }
 };
 
 const searchMovieforTag = (tag: string) => {
@@ -199,7 +221,7 @@ const toggleExpand = (id: string) => {
     @include text-ellipsis(2);
 
     &:active {
-      color: var(--theme-theme);
+      opacity: 0.7;
     }
   }
 
