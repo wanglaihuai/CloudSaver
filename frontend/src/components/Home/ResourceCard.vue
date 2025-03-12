@@ -32,7 +32,6 @@
           </h3>
           <div class="detail-description" v-html="currentResource.content" />
           <div v-if="currentResource.tags?.length" class="detail-tags">
-            <span class="tags-label">标签：</span>
             <div class="tags-list">
               <el-tag
                 v-for="tag in currentResource.tags"
@@ -139,7 +138,6 @@
                 />
 
                 <div v-if="resource.tags?.length" class="card-tags">
-                  <span class="tags-label">标签：</span>
                   <div class="tags-list">
                     <el-tag
                       v-for="tag in resource.tags"
