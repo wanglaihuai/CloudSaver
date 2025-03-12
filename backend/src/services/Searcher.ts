@@ -72,7 +72,7 @@ export class Searcher {
       const matches = text.match(pattern);
       if (matches) {
         links.push(...matches);
-        cloudType = Object.keys(config.cloudPatterns)[index];
+        if (!cloudType) cloudType = Object.keys(config.cloudPatterns)[index];
       }
     });
     return {
