@@ -250,6 +250,7 @@ export const useResourceStore = defineStore("resource", {
                   cloudType: matchedDrive.type,
                   channel: matchedDrive.name,
                   pubDate: "",
+                  isSupportSave: true,
                 },
               ],
             },
@@ -281,6 +282,7 @@ export const useResourceStore = defineStore("resource", {
       const parsedCode = drive.parseShareCode(match);
       this.setLoadTree(true);
       let shareInfo = await drive.api.getShareInfo(parsedCode);
+      console.log(shareInfo);
       this.setLoadTree(false);
       if (shareInfo) {
         shareInfo = {

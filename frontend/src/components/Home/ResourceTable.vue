@@ -15,26 +15,14 @@
               <el-image
                 v-if="row.image"
                 class="table-item-image"
-                :src="
-                  userStore.imagesSource === 'proxy'
-                    ? `/tele-images/?url=${encodeURIComponent(row.image as string)}`
-                    : row.image
-                "
+                :src="getProxyImageUrl(row.image as string)"
+                :fit="row.image ? 'cover' : 'contain'"
                 hide-on-click-modal
-                :preview-src-list="[
-                  `${location.origin}${
-                    userStore.imagesSource === 'proxy'
-                      ? '/tele-images/?url=' + encodeURIComponent(row.image as string)
-                      : row.image
-                  }`,
-                ]"
                 :zoom-rate="1.2"
                 :max-scale="7"
                 :min-scale="0.2"
                 :initial-index="4"
-                preview-teleported
                 :z-index="999"
-                fit="cover"
                 width="60"
                 height="90"
               />
@@ -94,13 +82,9 @@
       <template #default="{ row }">
         <div class="group-header">
           <el-image
-            :src="
-              userStore.imagesSource === 'proxy'
-                ? `/tele-images/?url=${encodeURIComponent(row.channelInfo.channelLogo as string)}`
-                : row.channelInfo.channelLogo
-            "
+            :src="getProxyImageUrl(row.channelInfo.channelLogo as string)"
             class="channel-logo"
-            fit="cover"
+            :fit="row.channelInfo.channelLogo ? 'cover' : 'contain'"
             lazy
           />
           <span>{{ row.channelInfo.name }}</span>
@@ -115,8 +99,7 @@
 import { useResourceStore } from "@/stores/resource";
 import type { Resource, TagColor } from "@/types";
 import { computed } from "vue";
-import { useUserSettingStore } from "@/stores/userSetting";
-const userStore = useUserSettingStore();
+import { getProxyImageUrl } from "@/utils/image";
 
 const store = useResourceStore();
 const emit = defineEmits(["save", "loadMore", "searchMovieforTag", "jump"]);

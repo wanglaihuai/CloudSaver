@@ -12,12 +12,8 @@
         <div class="detail-cover">
           <el-image
             class="cover-image"
-            :src="
-              userStore.imagesSource === 'proxy'
-                ? `/tele-images/?url=${encodeURIComponent(currentResource.image as string)}`
-                : currentResource.image
-            "
-            fit="cover"
+            :src="getProxyImageUrl(currentResource.image as string)"
+            :fit="currentResource.image ? 'cover' : 'contain'"
           />
           <el-tag
             class="cloud-type"
@@ -78,14 +74,10 @@
           @click.stop
         >
           <el-image
-            :src="
-              userStore.imagesSource === 'proxy'
-                ? `/tele-images/?url=${encodeURIComponent(group.channelInfo.channelLogo)}`
-                : group.channelInfo.channelLogo
-            "
+            :src="getProxyImageUrl(group.channelInfo.channelLogo)"
+            :fit="group.channelInfo.channelLogo ? 'cover' : 'contain'"
             class="channel-logo"
             scroll-container="#pc-resources-content"
-            fit="cover"
             loading="lazy"
           />
           <span>{{ group.channelInfo.name }}</span>
@@ -101,7 +93,7 @@
         </el-tooltip>
       </div>
 
-      <div v-show="group.displayList" class="group-content">
+      <div v-if="group.displayList" class="group-content">
         <div class="card-grid">
           <el-card
             v-for="resource in group.list"
@@ -114,12 +106,8 @@
                 <el-image
                   loading="lazy"
                   class="cover-image"
-                  :src="
-                    userStore.imagesSource === 'proxy'
-                      ? `/tele-images/?url=${encodeURIComponent(resource.image as string)}`
-                      : resource.image
-                  "
-                  fit="cover"
+                  :src="getProxyImageUrl(resource.image as string)"
+                  :fit="resource.image ? 'cover' : 'contain'"
                   :alt="resource.title"
                   @click="showResourceDetail(resource)"
                 />
@@ -194,9 +182,8 @@ import { useResourceStore } from "@/stores/resource";
 import { ref } from "vue";
 import type { ResourceItem, TagColor } from "@/types";
 import { ArrowDown, Plus } from "@element-plus/icons-vue";
-import { useUserSettingStore } from "@/stores/userSetting";
+import { getProxyImageUrl } from "@/utils/image";
 
-const userStore = useUserSettingStore();
 const store = useResourceStore();
 
 const showDetail = ref(false);

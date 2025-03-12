@@ -6,8 +6,8 @@
         <!-- 左侧图片 -->
         <div class="content__image">
           <van-image
-            :src="`/tele-images/?url=${encodeURIComponent(item.image as string)}`"
-            fit="cover"
+            :src="getProxyImageUrl(item.image as string)"
+            :fit="item.image ? 'cover' : 'contain'"
             lazy-load
           />
           <!-- 来源标签移到图片左上角 -->
@@ -74,6 +74,7 @@ import { computed, ref } from "vue";
 import { useResourceStore } from "@/stores/resource";
 import { showNotify } from "vant";
 import type { ResourceItem } from "@/types";
+import { getProxyImageUrl } from "@/utils/image";
 
 // Props 定义
 const props = defineProps<{
