@@ -304,8 +304,8 @@ const registerCodeRules: FieldRule[] = [{ required: true, message: "请填写注
     position: absolute;
     inset: 0;
     background: url("@/assets/images/mobile-login-bg.png") no-repeat;
-    background-size: cover;
-    background-position: center;
+    background-size: 100% auto;
+    filter: blur(1px);
   }
 
   // 主内容区
@@ -347,6 +347,7 @@ const registerCodeRules: FieldRule[] = [{ required: true, message: "请填写注
   // 表单
   &__form {
     padding: 0;
+    margin-top: 20px;
   }
 
   &__form-group {
