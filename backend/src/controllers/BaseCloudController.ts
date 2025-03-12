@@ -10,7 +10,7 @@ export abstract class BaseCloudController extends BaseController {
   async getShareInfo(req: Request, res: Response): Promise<void> {
     await this.handleRequest(req, res, async () => {
       const { shareCode, receiveCode } = req.query;
-      await this.cloudService.setCookie(req);
+      // await this.cloudService.setCookie(req);
       return await this.cloudService.getShareInfo(shareCode as string, receiveCode as string);
     });
   }
