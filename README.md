@@ -246,7 +246,8 @@ docker-compose up -d
 
 <div align="center">
   <div>
-    <img src="./docs/images/wechat.jpg" width="200" alt="微信交流群">
+    <img src="./docs/images/wechat.jpg" height="200" alt="微信号">
+    <img src="./docs/images/wechat_2.jpg" height="200" alt="微信交流群">
     <p>微信交流群</p>
   </div>
 </div>
@@ -259,7 +260,8 @@ docker-compose up -d
 
 - ⭐ 给项目点个 Star
 - 🎉 分享给更多有需要的朋友
-- ☕ 请作者喝瓶可乐🥤或者咖啡☕
+- ☕ 请作者喝杯咖啡
+- 💰 **赞赏了一定记得和我联系**
 
 <div align="center">
   <div style="display: inline-block; margin: 0 20px;">
