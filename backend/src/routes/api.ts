@@ -8,6 +8,7 @@ import { DoubanController } from "../controllers/douban";
 import { ImageController } from "../controllers/teleImages";
 import { SettingController } from "../controllers/setting";
 import { UserController } from "../controllers/user";
+import { SponsorsController } from "../controllers/sponsors";
 
 const router = Router();
 
@@ -19,6 +20,7 @@ const doubanController = container.get<DoubanController>(TYPES.DoubanController)
 const imageController = container.get<ImageController>(TYPES.ImageController);
 const settingController = container.get<SettingController>(TYPES.SettingController);
 const userController = container.get<UserController>(TYPES.UserController);
+const sponsorsController = container.get<SponsorsController>(TYPES.SponsorsController);
 
 // 用户相关路由
 router.post("/user/login", (req, res) => userController.login(req, res));
@@ -33,6 +35,9 @@ router.post("/setting/save", (req, res) => settingController.save(req, res));
 
 // 资源搜索
 router.get("/search", (req, res) => resourceController.search(req, res));
+
+// 获取赞助者列表
+router.get("/sponsors", (req, res) => sponsorsController.get(req, res));
 
 // 115网盘相关
 router.get("/cloud115/share-info", (req, res) => cloud115Controller.getShareInfo(req, res));

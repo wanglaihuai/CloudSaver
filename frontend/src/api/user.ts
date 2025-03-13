@@ -7,4 +7,7 @@ export const userApi = {
   register: (data: { username: string; password: string; registerCode: string }) => {
     return request.post<{ token: string }>("/api/user/register", data);
   },
+  getSponsors: () => {
+    return request.get("/api/sponsors?timestamp=" + Date.now());
+  },
 };

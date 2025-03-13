@@ -7,6 +7,7 @@ export const TYPES = {
   ImageService: Symbol.for("ImageService"),
   SettingService: Symbol.for("SettingService"),
   UserService: Symbol.for("UserService"),
+  SponsorsService: Symbol.for("SponsorsService"),
 
   Cloud115Controller: Symbol.for("Cloud115Controller"),
   QuarkController: Symbol.for("QuarkController"),
@@ -15,4 +16,5 @@ export const TYPES = {
   ImageController: Symbol.for("ImageController"),
   SettingController: Symbol.for("SettingController"),
   UserController: Symbol.for("UserController"),
+  SponsorsController: Symbol.for("SponsorsController"),
 };

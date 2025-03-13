@@ -8,7 +8,7 @@ interface ProxyConfig {
 
 export function createAxiosInstance(
   baseURL: string,
-  headers: AxiosRequestHeaders,
+  headers?: AxiosRequestHeaders,
   useProxy: boolean = false,
   proxyConfig?: ProxyConfig
 ): AxiosInstance {
