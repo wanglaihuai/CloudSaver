@@ -92,13 +92,10 @@
 <script setup lang="ts">
 import { useResourceStore } from "@/stores/resource";
 import type { Resource, TagColor } from "@/types";
-import { computed } from "vue";
 import { getProxyImageUrl } from "@/utils/image";
 
 const store = useResourceStore();
 const emit = defineEmits(["save", "loadMore", "searchMovieforTag", "jump"]);
-
-const location = computed(() => window.location);
 
 const handleSave = (resource: Resource) => {
   emit("save", resource);
