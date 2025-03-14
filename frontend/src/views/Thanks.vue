@@ -109,46 +109,6 @@ let currentHoverIndex = null;
 
 onMounted(async () => {
   await getSponsors();
-  // 初始化每个头像的动画时间轴
-  avatarWrapperRefs.value.forEach((wrapper, index) => {
-    const tl = gsap.timeline({
-      repeat: -1,
-      defaults: { ease: "power1.inOut" },
-      paused: true,
-    });
-
-    // 创建浮动动画 - 使用相对值而不是绝对值
-    tl.to(wrapper, {
-      yPercent: -10, // 使用百分比
-      rotation: 2,
-      duration: 1.5,
-      overwrite: "auto", // 添加覆盖设置
-    })
-      .to(wrapper, {
-        yPercent: 0,
-        rotation: 0,
-        duration: 1.5,
-        overwrite: "auto",
-      })
-      .to(wrapper, {
-        yPercent: 10,
-        rotation: -2,
-        duration: 1.5,
-        overwrite: "auto",
-      })
-      .to(wrapper, {
-        yPercent: 0,
-        rotation: 0,
-        duration: 1.5,
-        overwrite: "auto",
-      });
-
-    // 存储时间轴引用
-    avatarTimelines.value[index] = tl;
-
-    // 设置随机的起始时间并播放
-    tl.progress(Math.random()).play();
-  });
 
   // 修改页面入场动画
   const tl = gsap.timeline({
@@ -161,32 +121,29 @@ onMounted(async () => {
     opacity: 0,
     duration: 0.6,
     stagger: {
-      amount: 0.3, // 所有元素在0.3秒内完成错开动画
+      amount: 0.3,
       from: "start",
     },
     ease: "back.out(1.2)",
-    onComplete: () => {
-      // 动画完成后启动浮动动画
-      avatarTimelines.value.forEach((timeline) => {
-        if (timeline) {
-          timeline.progress(Math.random()).play();
-        }
-      });
-    },
   });
 
-  // 背景圆圈动画
-  gsap.to(".gradient-circle", {
-    rotation: 360,
-    duration: 20,
-    repeat: -1,
-    ease: "none",
-    stagger: {
-      each: 5,
-      from: "random",
-    },
-  });
+  // 添加可见性变化监听
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  // 添加窗口失焦事件处理
+  window.addEventListener("blur", handleMouseLeave);
 });
+
+// 修改 handleVisibilityChange 函数
+const handleVisibilityChange = () => {
+  if (document.hidden) {
+    // 页面不可见时清理资源
+    if (typeItInstance) {
+      typeItInstance.destroy();
+      typeItInstance = null;
+    }
+  }
+};
 
 // 修改鼠标移入处理函数
 const handleMouseEnter = (() => {
@@ -262,29 +219,24 @@ const updateAvatarsEffect = (activeIndex) => {
           scale: 1.2,
           y: -15,
           zIndex: 10,
-          duration: 0.5,
-          ease: "back.out(1.7)",
+          duration: 0.2,
+          ease: "back.out(1.5)",
           force3D: true,
         });
 
-        // 增强激活头像的阴影
         gsap.to(avatarContainer, {
           filter: "drop-shadow(0 20px 30px rgba(0, 0, 0, 0.25))",
-          duration: 0.5,
+          duration: 0.2,
         });
 
         const activeOverlay = wrapper.querySelector(".avatar-overlay");
         gsap.to(activeOverlay, {
           opacity: 0,
-          duration: 0.3,
-          onComplete: () => {
-            activeOverlay.style.background = "none";
-          },
+          duration: 0.15,
         });
         return;
       }
 
-      // 获取当前头像的位置
       const rect = wrapper.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
@@ -292,34 +244,41 @@ const updateAvatarsEffect = (activeIndex) => {
       const deltaY = activeCenter.value.y - centerY;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-      // 计算效果强度
-      const maxDistance = 800;
-      const strength = Math.max(0, 1 - distance / maxDistance);
-      const attractionCurve = Math.pow(strength, 1.2);
+      if (distance < 0.1) return;
 
-      // 计算阴影偏移和强度
+      const maxDistance = 400;
+      const strength = Math.max(0, 1 - distance / maxDistance);
+
+      // 计算吸引力效果
+      const attractionStrength = Math.pow(strength, 1.5);
+      const moveX = (deltaX / distance) * 30 * attractionStrength;
+      const moveY = (deltaY / distance) * 30 * attractionStrength;
+
+      // 计算旋转角度
+      const rotateX = -Math.atan2(deltaY, distance) * (180 / Math.PI) * strength;
+      const rotateY = Math.atan2(deltaX, distance) * (180 / Math.PI) * strength;
+
+      // 应用变换效果
+      gsap.to(inner, {
+        scale: 1 + 0.05 * strength,
+        x: moveX,
+        y: moveY,
+        rotationX: rotateX,
+        rotationY: rotateY,
+        duration: 0.2,
+        ease: "power2.out",
+        force3D: true,
+      });
+
+      // 更新阴影效果
       const shadowOffsetX = (deltaX / distance) * 15 * strength;
       const shadowOffsetY = Math.max(6, (deltaY / distance) * 20 * strength + 6);
       const shadowBlur = 12 + 18 * strength;
       const shadowOpacity = 0.15 + 0.1 * strength;
 
-      // 更新阴影效果
       gsap.to(avatarContainer, {
         filter: `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px rgba(0, 0, 0, ${shadowOpacity}))`,
-        duration: 0.5,
-      });
-
-      // 更新变换效果
-      gsap.to(inner, {
-        rotation: 0,
-        scale: 1 + 0.05 * strength,
-        x: (deltaX / distance) * 30 * attractionCurve,
-        y: (deltaY / distance) * 30 * attractionCurve,
-        rotationX: -Math.atan2(deltaY, distance) * (180 / Math.PI) * strength,
-        rotationY: Math.atan2(deltaX, distance) * (180 / Math.PI) * strength,
-        duration: 0.5,
-        ease: "power2.out",
-        force3D: true,
+        duration: 0.2,
       });
     });
   });
@@ -333,96 +292,47 @@ const handleMouseLeave = () => {
 
   if (!avatarWrapperRefs.value) return;
 
-  // 立即停止所有正在进行的动画
   avatarWrapperRefs.value.forEach((wrapper) => {
     const inner = wrapper.querySelector(".avatar-inner");
-    gsap.killTweensOf(inner);
-  });
+    if (inner) {
+      gsap.killTweensOf(inner);
 
-  // 重置所有头像状态
-  resetAllAvatars();
-};
-
-// 添加重置所有头像的函数
-const resetAllAvatars = () => {
-  if (!avatarWrapperRefs.value) return;
-
-  avatarWrapperRefs.value.forEach((wrapper, index) => {
-    const inner = wrapper.querySelector(".avatar-inner");
-    const avatarContainer = wrapper.closest(".sponsor-avatar");
-
-    // 重置变换状态
-    gsap.set(inner, {
-      scale: 1,
-      x: 0,
-      y: 0,
-      rotation: 0,
-      rotationX: 0,
-      rotationY: 0,
-      yPercent: 0,
-    });
-
-    // 恢复默认阴影
-    gsap.to(avatarContainer, {
-      filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15))",
-      duration: 0.3,
-    });
-
-    // 重置蒙层
-    const overlayElement = wrapper.querySelector(".avatar-overlay");
-    gsap.to(overlayElement, {
-      opacity: 1,
-      duration: 0.3,
-      onComplete: () => {
-        overlayElement.style.background = `
-          linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.2) 0%,
-            rgba(255, 255, 255, 0) 50%,
-            rgba(0, 0, 0, 0.1) 100%
-          )
-        `;
-      },
-    });
-
-    // 重新创建并启动浮动动画
-    const tl = gsap.timeline({
-      repeat: -1,
-      defaults: { ease: "power1.inOut" },
-    });
-
-    tl.to(inner, {
-      yPercent: -10,
-      rotation: 2,
-      duration: 1.5,
-      overwrite: "auto",
-    })
-      .to(inner, {
-        yPercent: 0,
+      gsap.to(inner, {
+        scale: 1,
+        y: 0,
+        x: 0,
         rotation: 0,
-        duration: 1.5,
-        overwrite: "auto",
-      })
-      .to(inner, {
-        yPercent: 10,
-        rotation: -2,
-        duration: 1.5,
-        overwrite: "auto",
-      })
-      .to(inner, {
-        yPercent: 0,
-        rotation: 0,
-        duration: 1.5,
-        overwrite: "auto",
+        rotationX: 0,
+        rotationY: 0,
+        duration: 0.2,
+        ease: "power2.out",
       });
+    }
 
-    avatarTimelines.value[index] = tl;
-    tl.progress(Math.random()).play();
+    const avatarContainer = wrapper.closest(".sponsor-avatar");
+    if (avatarContainer) {
+      gsap.killTweensOf(avatarContainer);
+
+      gsap.to(avatarContainer, {
+        filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15))",
+        duration: 0.2,
+      });
+    }
+
+    const overlayElement = wrapper.querySelector(".avatar-overlay");
+    if (overlayElement) {
+      gsap.to(overlayElement, {
+        opacity: 1,
+        duration: 0.15,
+      });
+    }
   });
-};
 
-// 添加窗口失焦事件处理
-window.addEventListener("blur", handleMouseLeave);
+  if (typeItInstance) {
+    typeItInstance.destroy();
+    typeItInstance = null;
+  }
+};
 
 // 添加点击处理函数
 const handleAvatarClick = (link) => {
@@ -434,16 +344,12 @@ const handleAvatarClick = (link) => {
 // 组件卸载时清理
 onBeforeUnmount(() => {
   window.removeEventListener("blur", handleMouseLeave);
-  // 清理动画时间轴
-  avatarTimelines.value.forEach((timeline) => {
-    if (timeline) {
-      timeline.kill();
-    }
-  });
-  avatarTimelines.value = [];
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
 
+  // 清理打字实例
   if (typeItInstance) {
     typeItInstance.destroy();
+    typeItInstance = null;
   }
 });
 
@@ -608,18 +514,15 @@ const handleButtonLeave = () => {
 }
 
 .avatar-inner {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   border-radius: 50%;
   border: 4px solid #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition:
-    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-    filter 0.3s ease;
+    transform 0.2s ease,
+    filter 0.2s ease;
   cursor: pointer;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
   position: relative;
   isolation: isolate;
   transform-style: preserve-3d;
@@ -647,9 +550,8 @@ const handleButtonLeave = () => {
   mix-blend-mode: overlay; /* 添加混合模式增强效果 */
 }
 
-.avatar-wrapper.active {
+.avatar-wrapper.active .avatar-inner {
   transform: scale(1.2) translateY(-10px);
-  z-index: 10;
 }
 
 .avatar-wrapper.has-link {
@@ -732,7 +634,7 @@ const handleButtonLeave = () => {
   min-width: 180px;
   z-index: 111;
   opacity: 0;
-  animation: dialogFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dialogFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   border: 1px solid rgba(0, 0, 0, 0.05);
   will-change: transform, opacity;
   backface-visibility: hidden;
@@ -774,8 +676,8 @@ const handleButtonLeave = () => {
 @keyframes dialogFadeIn {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(20px) scale(0.95);
-    filter: blur(2px);
+    transform: translateX(-50%) translateY(10px) scale(0.98);
+    filter: blur(1px);
   }
   100% {
     opacity: 1;
