@@ -6,8 +6,8 @@
         <!-- 左侧图片 -->
         <div class="content__image">
           <van-image
-            :src="`/tele-images/?url=${encodeURIComponent(item.image as string)}`"
-            fit="cover"
+            :src="getProxyImageUrl(item.image as string)"
+            :fit="item.image ? 'cover' : 'contain'"
             lazy-load
           />
           <!-- 来源标签移到图片左上角 -->
@@ -19,7 +19,7 @@
         <!-- 右侧信息 -->
         <div class="content__info">
           <!-- 标题 -->
-          <div class="info__title" @click="openUrl(item.cloudLinks[0])">
+          <div class="info__title" @click="copyUrl(item.cloudLinks[0])">
             {{ item.title }}
           </div>
 
@@ -50,9 +50,17 @@
 
             <!-- 转存按钮 -->
             <div class="info__action">
-              <van-button type="primary" size="mini" round @click="handleSave(item)">
-                转存
+              <van-button type="primary" size="mini" round plain @click="handleJump(item)">
+                跳转
               </van-button>
+              <van-button
+                v-if="item.isSupportSave"
+                type="primary"
+                size="mini"
+                round
+                @click="handleSave(item)"
+                >转存</van-button
+              >
             </div>
           </div>
         </div>
@@ -64,7 +72,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useResourceStore } from "@/stores/resource";
+import { showNotify } from "vant";
 import type { ResourceItem } from "@/types";
+import { getProxyImageUrl } from "@/utils/image";
 
 // Props 定义
 const props = defineProps<{
@@ -74,6 +84,7 @@ const props = defineProps<{
 // 事件定义
 const emit = defineEmits<{
   (e: "save", resource: ResourceItem): void;
+  (e: "jump", resource: ResourceItem): void;
   (e: "searchMovieforTag", tag: string): void;
 }>();
 
@@ -100,8 +111,32 @@ const handleSave = (resource: ResourceItem) => {
   emit("save", resource);
 };
 
-const openUrl = (url: string) => {
-  window.open(url);
+const handleJump = (resource: ResourceItem) => {
+  emit("jump", resource);
+};
+
+const copyUrl = async (url: string) => {
+  try {
+    await navigator.clipboard.writeText(url);
+    showNotify({
+      type: "success",
+      message: "链接已复制到剪贴板",
+      duration: 1500,
+    });
+  } catch (err) {
+    const input = document.createElement("input");
+    input.value = url;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    document.body.removeChild(input);
+
+    showNotify({
+      type: "success",
+      message: "链接已复制到剪贴板",
+      duration: 1500,
+    });
+  }
 };
 
 const searchMovieforTag = (tag: string) => {
@@ -187,7 +222,7 @@ const toggleExpand = (id: string) => {
     @include text-ellipsis(2);
 
     &:active {
-      color: var(--theme-theme);
+      opacity: 0.7;
     }
   }
 

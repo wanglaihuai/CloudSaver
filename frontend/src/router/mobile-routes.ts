@@ -21,6 +21,11 @@ const routes: RouteRecordRaw[] = [
         name: "setting",
         component: () => import("@/views/mobile/Setting.vue"),
       },
+      {
+        path: "/thanks",
+        name: "thanks",
+        redirect: "/resource",
+      },
     ],
   },
   {

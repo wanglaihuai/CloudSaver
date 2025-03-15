@@ -45,12 +45,7 @@
 
     <!-- GitHub 链接 -->
     <div class="pc-aside__footer">
-      <a
-        href="https://github.com/jiangrui1994/CloudSaver"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="github-link"
-      >
+      <a :href="PROJECT_GITHUB" target="_blank" rel="noopener noreferrer" class="github-link">
         <svg
           height="20"
           aria-hidden="true"
@@ -76,6 +71,7 @@ import { computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Search, Film, Setting, Link } from "@element-plus/icons-vue";
 import logo from "@/assets/images/logo.png";
+import { PROJECT_GITHUB } from "@/constants/project";
 import pkg from "../../package.json";
 
 // 类型定义
@@ -133,6 +129,12 @@ const menuList: MenuItem[] = [
     icon: Setting,
     router: "/setting",
     disabled: false,
+  },
+  {
+    index: "4",
+    title: "鸣谢",
+    icon: Link,
+    router: "/thanks",
   },
 ];
 

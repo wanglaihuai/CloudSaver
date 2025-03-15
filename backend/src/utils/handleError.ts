@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { Logger } from "../utils/logger";
+import { logger } from "../utils/logger";
 
 interface CustomError {
   name?: string;
@@ -13,6 +13,6 @@ export default function handleError(
   message: string,
   next: NextFunction
 ) {
-  Logger.error(message, error);
+  logger.error(message, error);
   next(error || { success: false, message });
 }

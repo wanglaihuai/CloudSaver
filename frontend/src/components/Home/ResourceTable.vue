@@ -5,45 +5,27 @@
     :data="store.resources"
     style="width: 100%"
     row-key="id"
-    :default-expand-all="true"
+    :default-expand-all="false"
   >
     <el-table-column type="expand">
       <template #default="props">
         <el-table :data="props.row.list" style="width: 100%">
-          <el-table-column label="图片" width="180">
+          <el-table-column label="图片" width="80">
             <template #default="{ row }">
               <el-image
                 v-if="row.image"
                 class="table-item-image"
-                :src="
-                  userStore.imagesSource === 'proxy'
-                    ? `/tele-images/?url=${encodeURIComponent(row.image as string)}`
-                    : row.image
-                "
-                hide-on-click-modal
-                :preview-src-list="[
-                  `${location.origin}${
-                    userStore.imagesSource === 'proxy'
-                      ? '/tele-images/?url=' + encodeURIComponent(row.image as string)
-                      : row.image
-                  }`,
-                ]"
-                :zoom-rate="1.2"
-                :max-scale="7"
-                :min-scale="0.2"
-                :initial-index="4"
-                preview-teleported
-                :z-index="999"
-                fit="cover"
-                width="60"
-                height="90"
+                :src="getProxyImageUrl(row.image as string)"
+                :fit="row.image ? 'cover' : 'contain'"
+                width="30"
+                height="60"
               />
               <el-icon v-else size="20"><Close /></el-icon>
             </template>
           </el-table-column>
-          <el-table-column prop="title" label="标题" width="180">
+          <el-table-column prop="title" label="标题" width="280">
             <template #default="{ row }">
-              <el-link :href="row.cloudLinks[0]" target="_blank">
+              <el-link :href="row.cloudLinks[0]" target="_blank" style="font-weight: bold">
                 {{ row.title }}
               </el-link>
             </template>
@@ -78,7 +60,8 @@
           </el-table-column>
           <el-table-column label="操作" width="180">
             <template #default="{ row }">
-              <el-button @click="handleSave(row)">转存</el-button>
+              <el-button type="primary" plain @click="handleJump(row)">跳转</el-button>
+              <el-button v-if="row.isSupportSave" @click="handleSave(row)">转存</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -93,13 +76,9 @@
       <template #default="{ row }">
         <div class="group-header">
           <el-image
-            :src="
-              userStore.imagesSource === 'proxy'
-                ? `/tele-images/?url=${encodeURIComponent(row.channelInfo.channelLogo as string)}`
-                : row.channelInfo.channelLogo
-            "
+            :src="getProxyImageUrl(row.channelInfo.channelLogo as string)"
             class="channel-logo"
-            fit="cover"
+            :fit="row.channelInfo.channelLogo ? 'cover' : 'contain'"
             lazy
           />
           <span>{{ row.channelInfo.name }}</span>
@@ -113,18 +92,17 @@
 <script setup lang="ts">
 import { useResourceStore } from "@/stores/resource";
 import type { Resource, TagColor } from "@/types";
-import { computed } from "vue";
-import { useUserSettingStore } from "@/stores/userSetting";
-const userStore = useUserSettingStore();
+import { getProxyImageUrl } from "@/utils/image";
 
 const store = useResourceStore();
-
-const emit = defineEmits(["save", "loadMore", "searchMovieforTag"]);
-
-const location = computed(() => window.location);
+const emit = defineEmits(["save", "loadMore", "searchMovieforTag", "jump"]);
 
 const handleSave = (resource: Resource) => {
   emit("save", resource);
+};
+
+const handleJump = (resource: Resource) => {
+  emit("jump", resource);
 };
 
 // 添加加载更多处理函数
@@ -156,9 +134,8 @@ const searchMovieforTag = (tag: string) => {
 }
 
 .table-item-image {
-  border-radius: 20px;
+  border-radius: 10px;
   width: 100%;
-  height: 220px;
 }
 
 .item-count {
@@ -181,8 +158,8 @@ const searchMovieforTag = (tag: string) => {
   margin: 15px 0;
   -webkit-box-orient: vertical;
   display: -webkit-box;
-  line-clamp: 4;
-  -webkit-line-clamp: 4;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
   overflow: hidden;
   white-space: all;
 }

@@ -4,7 +4,8 @@ import GlobalSetting from "../models/GlobalSetting";
 import { GlobalSettingAttributes } from "../models/GlobalSetting";
 import * as cheerio from "cheerio";
 import { config } from "../config";
-import { Logger } from "../utils/logger";
+import { logger } from "../utils/logger";
+import { injectable } from "inversify";
 
 interface sourceItem {
   messageId?: string;
@@ -20,20 +21,23 @@ interface sourceItem {
   cloudType?: string;
 }
 
+@injectable()
 export class Searcher {
-  private axiosInstance: AxiosInstance | null = null;
+  private static instance: Searcher;
+  private api: AxiosInstance | null = null;
 
   constructor() {
-    this.initializeAxiosInstance();
+    this.initAxiosInstance();
+    Searcher.instance = this;
   }
 
-  private async initializeAxiosInstance(isUpdate = false): Promise<void> {
-    let settings = null;
+  private async initAxiosInstance(isUpdate: boolean = false) {
+    let globalSetting = {} as GlobalSettingAttributes;
     if (isUpdate) {
-      settings = await GlobalSetting.findOne();
+      const settings = await GlobalSetting.findOne();
+      globalSetting = settings?.dataValues || ({} as GlobalSettingAttributes);
     }
-    const globalSetting = settings?.dataValues || ({} as GlobalSettingAttributes);
-    this.axiosInstance = createAxiosInstance(
+    this.api = createAxiosInstance(
       config.telegram.baseUrl,
       AxiosHeaders.from({
         accept:
@@ -56,8 +60,9 @@ export class Searcher {
         : undefined
     );
   }
-  public async updateAxiosInstance() {
-    await this.initializeAxiosInstance(true);
+
+  public static async updateAxiosInstance(): Promise<void> {
+    await Searcher.instance.initAxiosInstance(true);
   }
 
   private extractCloudLinks(text: string): { links: string[]; cloudType: string } {
@@ -67,7 +72,7 @@ export class Searcher {
       const matches = text.match(pattern);
       if (matches) {
         links.push(...matches);
-        cloudType = Object.keys(config.cloudPatterns)[index];
+        if (!cloudType) cloudType = Object.keys(config.cloudPatterns)[index];
       }
     });
     return {
@@ -111,7 +116,7 @@ export class Searcher {
           }
         });
       } catch (error) {
-        Logger.error(`搜索频道 ${channel.name} 失败:`, error);
+        logger.error(`搜索频道 ${channel.name} 失败:`, error);
       }
     });
 
@@ -125,10 +130,10 @@ export class Searcher {
 
   async searchInWeb(url: string) {
     try {
-      if (!this.axiosInstance) {
+      if (!this.api) {
         throw new Error("Axios instance is not initialized");
       }
-      const response = await this.axiosInstance.get(url);
+      const response = await this.api.get(url);
       const html = response.data;
       const $ = cheerio.load(html);
       const items: sourceItem[] = [];
@@ -205,7 +210,7 @@ export class Searcher {
       });
       return { items: items, channelLogo };
     } catch (error) {
-      Logger.error(`搜索错误: ${url}`, error);
+      logger.error(`搜索错误: ${url}`, error);
       return {
         items: [],
         channelLogo: "",

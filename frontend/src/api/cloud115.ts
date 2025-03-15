@@ -1,10 +1,10 @@
 import request from "@/utils/request";
-import type { ShareInfoResponse, Folder, Save115FileParams } from "@/types";
+import type { ShareInfoResponse, Folder, SaveFileParams, GetShareInfoParams } from "@/types";
 
 export const cloud115Api = {
-  async getShareInfo(shareCode: string, receiveCode = "") {
+  async getShareInfo(params: GetShareInfoParams) {
     const { data } = await request.get<ShareInfoResponse>("/api/cloud115/share-info", {
-      params: { shareCode, receiveCode },
+      params,
     });
     return data as ShareInfoResponse;
   },
@@ -16,7 +16,7 @@ export const cloud115Api = {
     return res;
   },
 
-  async saveFile(params: Save115FileParams) {
+  async saveFile(params: SaveFileParams) {
     const res = await request.post("/api/cloud115/save", params);
     return res;
   },

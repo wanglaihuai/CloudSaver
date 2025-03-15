@@ -1,78 +1,30 @@
-import axios, { AxiosInstance } from "axios";
-import e, { Request, Response } from "express";
-import tunnel from "tunnel";
-import GlobalSetting from "../models/GlobalSetting";
-import { GlobalSettingAttributes } from "../models/GlobalSetting";
+import { Request, Response } from "express";
+import { injectable, inject } from "inversify";
+import { TYPES } from "../core/types";
+import { ImageService } from "../services/ImageService";
+import { BaseController } from "./BaseController";
 
-export class ImageControll {
-  private axiosInstance: AxiosInstance | null = null;
-  private settings: GlobalSetting | null = null;
-
-  constructor() {
-    this.initializeAxiosInstance();
+@injectable()
+export class ImageController extends BaseController {
+  constructor(@inject(TYPES.ImageService) private imageService: ImageService) {
+    super();
   }
 
-  private async initializeAxiosInstance(): Promise<void> {
-    try {
-      this.settings = await GlobalSetting.findOne();
-    } catch (error) {
-      console.error("Error fetching global settings:", error);
-    }
-    const globalSetting = this.settings?.dataValues || ({} as GlobalSettingAttributes);
-    this.axiosInstance = axios.create({
-      timeout: 3000,
-      httpsAgent: globalSetting.isProxyEnabled
-        ? tunnel.httpsOverHttp({
-            proxy: {
-              host: globalSetting.httpProxyHost,
-              port: globalSetting.httpProxyPort,
-              headers: {
-                "Proxy-Authorization": "",
-              },
-            },
-          })
-        : undefined,
-      withCredentials: true,
+  async getImages(req: Request, res: Response): Promise<void> {
+    await this.handleRequest(req, res, async () => {
+      const url = decodeURIComponent((req.query.url as string) || "");
+      const response = await this.imageService.getImages(url);
+
+      // 设置正确的响应头
+      res.setHeader("Content-Type", response.headers["content-type"]);
+      res.setHeader("Cache-Control", "no-cache");
+
+      // 确保清除任何可能导致304响应的头信息
+      res.removeHeader("etag");
+      res.removeHeader("last-modified");
+
+      // 直接传输图片数据
+      response.data.pipe(res);
     });
   }
-  public async updateProxyConfig(): Promise<void> {
-    try {
-      this.settings = await GlobalSetting.findOne();
-      const globalSetting = this.settings?.dataValues || ({} as GlobalSettingAttributes);
-      if (this.axiosInstance) {
-        this.axiosInstance.defaults.httpsAgent = globalSetting.isProxyEnabled
-          ? tunnel.httpsOverHttp({
-              proxy: {
-                host: globalSetting.httpProxyHost,
-                port: globalSetting.httpProxyPort,
-                headers: {
-                  "Proxy-Authorization": "",
-                },
-              },
-            })
-          : undefined;
-      }
-    } catch (error) {
-      console.error("Error updating proxy config:", error);
-    }
-  }
-
-  async getImages(req: Request, res: Response, url: string): Promise<void> {
-    try {
-      const response = await this.axiosInstance?.get(url, { responseType: "stream" });
-      res.set("Content-Type", response?.headers["content-type"]);
-      response?.data.pipe(res);
-    } catch (error) {
-      res.status(500).send("Image fetch error");
-    }
-  }
 }
-
-export const iamgesInstance = new ImageControll();
-
-export const imageControll = {
-  getImages: async (req: Request, res: Response): Promise<void> => {
-    const url = req.query.url as string;
-    iamgesInstance.getImages(req, res, url);
-  },
-};

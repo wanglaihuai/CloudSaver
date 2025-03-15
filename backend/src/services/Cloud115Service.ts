@@ -1,7 +1,11 @@
 import { AxiosHeaders, AxiosInstance } from "axios"; // 导入 AxiosHeaders
 import { createAxiosInstance } from "../utils/axiosInstance";
-import { Logger } from "../utils/logger";
-import { ShareInfoResponse } from "../types/cloud115";
+import { ShareInfoResponse, FolderListResponse, SaveFileParams } from "../types/cloud";
+import { injectable } from "inversify";
+import { Request } from "express";
+import UserSetting from "../models/UserSetting";
+import { ICloudStorageService } from "@/types/services";
+import { logger } from "../utils/logger";
 
 interface Cloud115ListItem {
   cid: string;
@@ -15,16 +19,12 @@ interface Cloud115FolderItem {
   ns: number;
 }
 
-interface Cloud115PathItem {
-  cid: string;
-  name: string;
-}
-
-export class Cloud115Service {
+@injectable()
+export class Cloud115Service implements ICloudStorageService {
   private api: AxiosInstance;
   private cookie: string = "";
 
-  constructor(cookie?: string) {
+  constructor() {
     this.api = createAxiosInstance(
       "https://webapi.115.com",
       AxiosHeaders.from({
@@ -44,19 +44,23 @@ export class Cloud115Service {
         "Accept-Language": "zh-CN,zh;q=0.9",
       })
     );
-    if (cookie) {
-      this.setCookie(cookie);
-    } else {
-      console.log("请注意:115网盘需要提供cookie进行身份验证");
-    }
+
     this.api.interceptors.request.use((config) => {
-      config.headers.cookie = cookie || this.cookie;
+      config.headers.cookie = this.cookie;
       return config;
     });
   }
 
-  public setCookie(cookie: string): void {
-    this.cookie = cookie;
+  async setCookie(req: Request): Promise<void> {
+    const userId = req.user?.userId;
+    const userSetting = await UserSetting.findOne({
+      where: { userId },
+    });
+    if (userSetting && userSetting.dataValues.cloud115Cookie) {
+      this.cookie = userSetting.dataValues.cloud115Cookie;
+    } else {
+      throw new Error("请先设置115网盘cookie");
+    }
   }
 
   async getShareInfo(shareCode: string, receiveCode = ""): Promise<ShareInfoResponse> {
@@ -71,19 +75,21 @@ export class Cloud115Service {
     });
     if (response.data?.state && response.data.data?.list?.length > 0) {
       return {
-        data: response.data.data.list.map((item: Cloud115ListItem) => ({
-          fileId: item.cid,
-          fileName: item.n,
-          fileSize: item.s,
-        })),
+        data: {
+          list: response.data.data.list.map((item: Cloud115ListItem) => ({
+            fileId: item.cid,
+            fileName: item.n,
+            fileSize: item.s,
+          })),
+        },
       };
+    } else {
+      logger.error("未找到文件信息:", response.data);
+      throw new Error("未找到文件信息");
     }
-    throw new Error("未找到文件信息");
   }
 
-  async getFolderList(
-    parentCid = "0"
-  ): Promise<{ data: { cid: string; name: string; path: Cloud115PathItem[] }[] }> {
+  async getFolderList(parentCid = "0"): Promise<FolderListResponse> {
     const response = await this.api.get("/files", {
       params: {
         aid: 1,
@@ -114,32 +120,27 @@ export class Cloud115Service {
           })),
       };
     } else {
-      Logger.error("获取目录列表失败:", response.data.error);
+      logger.error("获取目录列表失败:", response.data.error);
       throw new Error("获取115pan目录列表失败:" + response.data.error);
     }
   }
 
-  async saveSharedFile(params: {
-    cid: string;
-    shareCode: string;
-    receiveCode: string;
-    fileId: string;
-  }): Promise<{ message: string; data: unknown }> {
+  async saveSharedFile(params: SaveFileParams): Promise<{ message: string; data: unknown }> {
     const param = new URLSearchParams({
-      cid: params.cid,
-      share_code: params.shareCode,
-      receive_code: params.receiveCode,
-      file_id: params.fileId,
+      cid: params.folderId || "",
+      share_code: params.shareCode || "",
+      receive_code: params.receiveCode || "",
+      file_id: params.fids?.[0] || "",
     });
     const response = await this.api.post("/share/receive", param.toString());
-    Logger.info("保存文件:", response.data);
+    logger.info("保存文件:", response.data);
     if (response.data.state) {
       return {
         message: response.data.error,
         data: response.data.data,
       };
     } else {
-      Logger.error("保存文件失败:", response.data.error);
+      logger.error("保存文件失败:", response.data.error);
       throw new Error("保存115pan文件失败:" + response.data.error);
     }
   }

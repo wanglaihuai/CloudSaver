@@ -10,7 +10,7 @@ interface DoubanSubject {
   is_new: boolean;
 }
 
-class DoubanService {
+export class DoubanService {
   private baseUrl: string;
   private api: AxiosInstance;
 
@@ -62,5 +62,3 @@ class DoubanService {
     }
   }
 }
-
-export default DoubanService;

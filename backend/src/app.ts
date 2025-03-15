@@ -1,76 +1,57 @@
 // filepath: /d:/code/CloudDiskDown/backend/src/app.ts
 import "./types/express";
 import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
+import { container } from "./inversify.config";
+import { TYPES } from "./core/types";
+import { DatabaseService } from "./services/DatabaseService";
+import { setupMiddlewares } from "./middleware";
 import routes from "./routes/api";
+import { logger } from "./utils/logger";
 import { errorHandler } from "./middleware/errorHandler";
-import sequelize from "./config/database";
-import { authMiddleware } from "./middleware/auth";
-import GlobalSetting from "./models/GlobalSetting";
-import Searcher from "./services/Searcher";
+class App {
+  private app = express();
+  private databaseService = container.get<DatabaseService>(TYPES.DatabaseService);
 
-const app = express();
-
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-  })
-);
-
-app.use(cookieParser());
-app.use(express.json());
-
-// 应用 token 验证中间件，排除登录和注册接口
-app.use((req, res, next) => {
-  if (
-    req.path === "/user/login" ||
-    req.path === "/user/register" ||
-    req.path.includes("tele-images")
-  ) {
-    return next();
+  constructor() {
+    this.setupExpress();
   }
-  authMiddleware(req, res, next);
+
+  private setupExpress(): void {
+    // 设置中间件
+    setupMiddlewares(this.app);
+
+    // 设置路由
+    this.app.use("/", routes);
+    this.app.use(errorHandler);
+  }
+
+  public async start(): Promise<void> {
+    try {
+      // 初始化数据库
+      await this.databaseService.initialize();
+      logger.info("数据库初始化成功");
+
+      // 启动服务器
+      const port = process.env.PORT || 8009;
+      this.app.listen(port, () => {
+        logger.info(`
+🚀 服务器启动成功
+🌍 监听端口: ${port}
+🔧 运行环境: ${process.env.NODE_ENV || "development"}
+        `);
+      });
+    } catch (error) {
+      logger.error("服务器启动失败:", error);
+      process.exit(1);
+    }
+  }
+}
+
+// 创建并启动应用
+const application = new App();
+application.start().catch((error) => {
+  logger.error("应用程序启动失败:", error);
+  process.exit(1);
 });
 
-app.use("/", routes);
-
-const initializeGlobalSettings = async (): Promise<void> => {
-  const settings = await GlobalSetting.findOne();
-  if (!settings) {
-    await GlobalSetting.create({
-      httpProxyHost: "127.0.0.1",
-      httpProxyPort: 7890,
-      isProxyEnabled: true,
-      CommonUserCode: 9527,
-      AdminUserCode: 230713,
-    });
-    console.log("Global settings initialized with default values.");
-  }
-  await Searcher.updateAxiosInstance();
-};
-
-// 错误处理
-app.use(errorHandler);
-
-const PORT = process.env.PORT || 8009;
-
-// 在同步前禁用外键约束，同步后重新启用
-sequelize
-  .query("PRAGMA foreign_keys = OFF") // 禁用外键
-  .then(() => sequelize.sync({ alter: true }))
-  .then(() => sequelize.query("PRAGMA foreign_keys = ON")) // 重新启用外键
-  .then(() => {
-    app.listen(PORT, async () => {
-      await initializeGlobalSettings();
-      console.log(`Server is running on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("Database sync failed:", error);
-  });
-
-export default app;
+export default application;

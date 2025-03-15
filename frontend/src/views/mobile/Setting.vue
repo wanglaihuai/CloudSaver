@@ -48,20 +48,35 @@
         <van-cell-group inset>
           <van-field
             v-model="localUserSettings.cloud115Cookie"
+            :type="showCloud115Cookie ? 'text' : 'password'"
             label="115网盘"
-            type="textarea"
             rows="2"
             autosize
             placeholder="请输入115网盘Cookie"
-          />
+          >
+            <template #right-icon>
+              <van-icon
+                :name="showCloud115Cookie ? 'eye-o' : 'closed-eye'"
+                @click="showCloud115Cookie = !showCloud115Cookie"
+              />
+            </template>
+          </van-field>
+
           <van-field
             v-model="localUserSettings.quarkCookie"
+            :type="showQuarkCookie ? 'text' : 'password'"
             label="夸克网盘"
-            type="textarea"
             rows="2"
             autosize
             placeholder="请输入夸克网盘Cookie"
-          />
+          >
+            <template #right-icon>
+              <van-icon
+                :name="showQuarkCookie ? 'eye-o' : 'closed-eye'"
+                @click="showQuarkCookie = !showQuarkCookie"
+              />
+            </template>
+          </van-field>
         </van-cell-group>
       </div>
 
@@ -121,6 +136,10 @@ const localUserSettings = ref<UserSettingAttributes>({
   cloud115Cookie: "",
   quarkCookie: "",
 });
+
+// 添加显示/隐藏密码的状态
+const showCloud115Cookie = ref(false);
+const showQuarkCookie = ref(false);
 
 // 监听 store 变化
 watch(
@@ -251,5 +270,16 @@ const handleProxyHostChange = (val: string) => {
 
 :deep(.van-cell-group--inset) {
   margin: 0;
+}
+
+// 添加图标样式
+:deep(.van-field__right-icon) {
+  padding: 0 8px;
+  cursor: pointer;
+  color: var(--theme-color);
+
+  .van-icon {
+    font-size: 18px;
+  }
 }
 </style>

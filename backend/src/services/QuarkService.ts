@@ -1,6 +1,16 @@
 import { AxiosInstance, AxiosHeaders } from "axios";
-import { Logger } from "../utils/logger";
+import { logger } from "../utils/logger";
 import { createAxiosInstance } from "../utils/axiosInstance";
+import { injectable } from "inversify";
+import { Request } from "express";
+import UserSetting from "../models/UserSetting";
+import {
+  ShareInfoResponse,
+  FolderListResponse,
+  QuarkFolderItem,
+  SaveFileParams,
+} from "../types/cloud";
+import { ICloudStorageService } from "@/types/services";
 
 interface QuarkShareInfo {
   stoken?: string;
@@ -14,17 +24,12 @@ interface QuarkShareInfo {
   }[];
 }
 
-interface QuarkFolderItem {
-  fid: string;
-  file_name: string;
-  file_type: number;
-}
-
-export class QuarkService {
+@injectable()
+export class QuarkService implements ICloudStorageService {
   private api: AxiosInstance;
   private cookie: string = "";
 
-  constructor(cookie?: string) {
+  constructor() {
     this.api = createAxiosInstance(
       "https://drive-h.quark.cn",
       AxiosHeaders.from({
@@ -41,22 +46,26 @@ export class QuarkService {
         "sec-fetch-site": "same-site",
       })
     );
-    if (cookie) {
-      this.setCookie(cookie);
-    } else {
-      console.log("请注意:夸克网盘需要提供cookie进行身份验证");
-    }
+
     this.api.interceptors.request.use((config) => {
-      config.headers.cookie = cookie || this.cookie;
+      config.headers.cookie = this.cookie;
       return config;
     });
   }
 
-  public setCookie(cookie: string): void {
-    this.cookie = cookie;
+  async setCookie(req: Request): Promise<void> {
+    const userId = req.user?.userId;
+    const userSetting = await UserSetting.findOne({
+      where: { userId },
+    });
+    if (userSetting && userSetting.dataValues.quarkCookie) {
+      this.cookie = userSetting.dataValues.quarkCookie;
+    } else {
+      throw new Error("请先设置夸克网盘cookie");
+    }
   }
 
-  async getShareInfo(pwdId: string, passcode = ""): Promise<{ data: QuarkShareInfo }> {
+  async getShareInfo(pwdId: string, passcode = ""): Promise<ShareInfoResponse> {
     const response = await this.api.post(
       `/1/clouddrive/share/sharepage/token?pr=ucpro&fr=pc&uc_param_str=&__dt=994&__t=${Date.now()}`,
       {
@@ -76,7 +85,7 @@ export class QuarkService {
     throw new Error("获取夸克分享信息失败");
   }
 
-  async getShareList(pwdId: string, stoken: string): Promise<QuarkShareInfo> {
+  async getShareList(pwdId: string, stoken: string): Promise<ShareInfoResponse["data"]> {
     const response = await this.api.get("/1/clouddrive/share/sharepage/detail", {
       params: {
         pr: "ucpro",
@@ -117,9 +126,7 @@ export class QuarkService {
     }
   }
 
-  async getFolderList(
-    parentCid = "0"
-  ): Promise<{ data: { cid: string; name: string; path: [] }[] }> {
+  async getFolderList(parentCid = "0"): Promise<FolderListResponse> {
     const response = await this.api.get("/1/clouddrive/file/sort", {
       params: {
         pr: "ucpro",
@@ -148,24 +155,25 @@ export class QuarkService {
       };
     } else {
       const message = "获取夸克目录列表失败:" + response.data.error;
-      Logger.error(message);
+      logger.error(message);
       throw new Error(message);
     }
   }
 
-  async saveSharedFile(params: {
-    fid_list: string[];
-    fid_token_list: string[];
-    to_pdir_fid: string;
-    pwd_id: string;
-    stoken: string;
-    pdir_fid: string;
-    scene: string;
-  }): Promise<{ message: string; data: unknown }> {
+  async saveSharedFile(params: SaveFileParams): Promise<{ message: string; data: unknown }> {
+    const quarkParams = {
+      fid_list: params.fids,
+      fid_token_list: params.fidTokens,
+      to_pdir_fid: params.folderId,
+      pwd_id: params.shareCode,
+      stoken: params.receiveCode,
+      pdir_fid: "0",
+      scene: "link",
+    };
     try {
       const response = await this.api.post(
         `/1/clouddrive/share/sharepage/save?pr=ucpro&fr=pc&uc_param_str=&__dt=208097&__t=${Date.now()}`,
-        params
+        quarkParams
       );
 
       return {

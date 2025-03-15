@@ -12,12 +12,8 @@
         <div class="detail-cover">
           <el-image
             class="cover-image"
-            :src="
-              userStore.imagesSource === 'proxy'
-                ? `/tele-images/?url=${encodeURIComponent(currentResource.image as string)}`
-                : currentResource.image
-            "
-            fit="cover"
+            :src="getProxyImageUrl(currentResource.image as string)"
+            :fit="currentResource.image ? 'cover' : 'contain'"
           />
           <el-tag
             class="cloud-type"
@@ -36,7 +32,6 @@
           </h3>
           <div class="detail-description" v-html="currentResource.content" />
           <div v-if="currentResource.tags?.length" class="detail-tags">
-            <span class="tags-label">标签：</span>
             <div class="tags-list">
               <el-tag
                 v-for="tag in currentResource.tags"
@@ -52,7 +47,13 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="currentResource && handleSave(currentResource)"
+          <el-button type="primary" plain @click="currentResource && handleJump(currentResource)"
+            >跳转</el-button
+          >
+          <el-button
+            v-if="currentResource?.isSupportSave"
+            type="primary"
+            @click="currentResource && handleSave(currentResource)"
             >转存</el-button
           >
         </div>
@@ -60,7 +61,10 @@
     </el-dialog>
 
     <div v-for="group in store.resources" :key="group.id" class="resource-group">
-      <div class="group-header" @click="group.displayList = !group.displayList">
+      <div
+        :class="{ 'group-header': true, 'is-active': group.displayList }"
+        @click="group.displayList = !group.displayList"
+      >
         <el-link
           class="group-title"
           :href="`https://t.me/s/${group.id}`"
@@ -69,14 +73,10 @@
           @click.stop
         >
           <el-image
-            :src="
-              userStore.imagesSource === 'proxy'
-                ? `/tele-images/?url=${encodeURIComponent(group.channelInfo.channelLogo)}`
-                : group.channelInfo.channelLogo
-            "
+            :src="getProxyImageUrl(group.channelInfo.channelLogo)"
+            :fit="group.channelInfo.channelLogo ? 'cover' : 'contain'"
             class="channel-logo"
             scroll-container="#pc-resources-content"
-            fit="cover"
             loading="lazy"
           />
           <span>{{ group.channelInfo.name }}</span>
@@ -84,7 +84,7 @@
         </el-link>
 
         <el-tooltip effect="dark" :content="group.displayList ? '收起' : '展开'" placement="top">
-          <el-button class="toggle-btn" type="text" @click="group.displayList = !group.displayList">
+          <el-button class="toggle-btn" type="text">
             <el-icon :class="{ 'is-active': group.displayList }">
               <ArrowDown />
             </el-icon>
@@ -92,7 +92,7 @@
         </el-tooltip>
       </div>
 
-      <div v-show="group.displayList" class="group-content">
+      <div v-if="group.displayList" class="group-content">
         <div class="card-grid">
           <el-card
             v-for="resource in group.list"
@@ -105,12 +105,8 @@
                 <el-image
                   loading="lazy"
                   class="cover-image"
-                  :src="
-                    userStore.imagesSource === 'proxy'
-                      ? `/tele-images/?url=${encodeURIComponent(resource.image as string)}`
-                      : resource.image
-                  "
-                  fit="cover"
+                  :src="getProxyImageUrl(resource.image as string)"
+                  :fit="resource.image ? 'cover' : 'contain'"
                   :alt="resource.title"
                   @click="showResourceDetail(resource)"
                 />
@@ -142,7 +138,6 @@
                 />
 
                 <div v-if="resource.tags?.length" class="card-tags">
-                  <span class="tags-label">标签：</span>
                   <div class="tags-list">
                     <el-tag
                       v-for="tag in resource.tags"
@@ -156,7 +151,13 @@
                 </div>
 
                 <div class="card-footer">
-                  <el-button type="primary" @click="handleSave(resource)">转存</el-button>
+                  <el-button type="primary" plain @click="handleJump(resource)">跳转</el-button>
+                  <el-button
+                    v-if="resource.isSupportSave"
+                    type="primary"
+                    @click="handleSave(resource)"
+                    >转存</el-button
+                  >
                 </div>
               </div>
             </div>
@@ -179,21 +180,24 @@ import { useResourceStore } from "@/stores/resource";
 import { ref } from "vue";
 import type { ResourceItem, TagColor } from "@/types";
 import { ArrowDown, Plus } from "@element-plus/icons-vue";
-import { useUserSettingStore } from "@/stores/userSetting";
+import { getProxyImageUrl } from "@/utils/image";
 
-const userStore = useUserSettingStore();
 const store = useResourceStore();
 
 const showDetail = ref(false);
 const currentResource = ref<ResourceItem | null>(null);
 
-const emit = defineEmits(["save", "loadMore", "searchMovieforTag"]);
+const emit = defineEmits(["save", "loadMore", "jump", "searchMovieforTag"]);
 
 const handleSave = (resource: ResourceItem) => {
   if (showDetail.value) {
     showDetail.value = false;
   }
   emit("save", resource);
+};
+
+const handleJump = (resource: ResourceItem) => {
+  emit("jump", resource);
 };
 
 const showResourceDetail = (resource: ResourceItem) => {
@@ -244,9 +248,13 @@ const handleLoadMore = (channelId: string) => {
     backdrop-filter: var(--theme-blur);
     -webkit-backdrop-filter: var(--theme-blur);
     z-index: 10;
-    border-radius: var(--theme-radius) var(--theme-radius) 0 0;
+    border-radius: var(--theme-radius);
     overflow: hidden;
     cursor: pointer;
+
+    &.is-active {
+      border-radius: var(--theme-radius) var(--theme-radius) 0 0;
+    }
 
     .group-title {
       @include flex-center;
@@ -306,7 +314,7 @@ const handleLoadMore = (channelId: string) => {
   // 卡片网格
   .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 24px;
     grid-auto-rows: min-content;
   }

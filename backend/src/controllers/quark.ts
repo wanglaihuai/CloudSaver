@@ -1,52 +1,12 @@
 import { Request, Response } from "express";
+import { injectable, inject } from "inversify";
+import { TYPES } from "../core/types";
 import { QuarkService } from "../services/QuarkService";
-import { sendSuccess, sendError } from "../utils/response";
-import UserSetting from "../models/UserSetting";
+import { BaseCloudController } from "./BaseCloudController";
 
-const quark = new QuarkService();
-
-const setCookie = async (req: Request): Promise<void> => {
-  const userId = req.user?.userId;
-  const userSetting = await UserSetting.findOne({
-    where: { userId },
-  });
-  if (userSetting && userSetting.dataValues.quarkCookie) {
-    quark.setCookie(userSetting.dataValues.quarkCookie);
-  } else {
-    throw new Error("请先设置夸克网盘cookie");
+@injectable()
+export class QuarkController extends BaseCloudController {
+  constructor(@inject(TYPES.QuarkService) quarkService: QuarkService) {
+    super(quarkService);
   }
-};
-
-export const quarkController = {
-  async getShareInfo(req: Request, res: Response): Promise<void> {
-    try {
-      const { pwdId, passcode } = req.query;
-      await setCookie(req);
-      const result = await quark.getShareInfo(pwdId as string, passcode as string);
-      sendSuccess(res, result);
-    } catch (error) {
-      sendError(res, { message: "获取分享信息失败" });
-    }
-  },
-
-  async getFolderList(req: Request, res: Response): Promise<void> {
-    try {
-      const { parentCid } = req.query;
-      await setCookie(req);
-      const result = await quark.getFolderList(parentCid as string);
-      sendSuccess(res, result);
-    } catch (error) {
-      sendError(res, { message: (error as Error).message || "获取目录列表失败" });
-    }
-  },
-
-  async saveFile(req: Request, res: Response): Promise<void> {
-    try {
-      await setCookie(req);
-      const result = await quark.saveSharedFile(req.body);
-      sendSuccess(res, result);
-    } catch (error) {
-      sendError(res, { message: (error as Error).message || "保存文件失败" });
-    }
-  },
-};
+}

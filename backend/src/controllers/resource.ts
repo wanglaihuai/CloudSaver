@@ -1,21 +1,23 @@
 import { Request, Response } from "express";
-import Searcher from "../services/Searcher";
-import { sendSuccess, sendError } from "../utils/response";
+import { injectable, inject } from "inversify";
+import { TYPES } from "../core/types";
+import { Searcher } from "../services/Searcher";
+import { BaseController } from "./BaseController";
 
-export const resourceController = {
+@injectable()
+export class ResourceController extends BaseController {
+  constructor(@inject(TYPES.Searcher) private searcher: Searcher) {
+    super();
+  }
+
   async search(req: Request, res: Response): Promise<void> {
-    try {
-      const { keyword, channelId = "", lastMessageId = "" } = req.query; // Remove `: string` from here
-      const result = await Searcher.searchAll(
+    await this.handleRequest(req, res, async () => {
+      const { keyword, channelId = "", lastMessageId = "" } = req.query;
+      return await this.searcher.searchAll(
         keyword as string,
         channelId as string,
         lastMessageId as string
       );
-      sendSuccess(res, result);
-    } catch (error) {
-      sendError(res, {
-        message: (error as Error).message || "搜索资源失败",
-      });
-    }
-  },
-};
+    });
+  }
+}
