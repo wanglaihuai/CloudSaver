@@ -159,7 +159,7 @@ pnpm start
 ```bash
 docker run -d \
   -p 8008:8008 \
-  -v /your/local/path:/app/data \
+  -v /your/local/path/data:/app/data \
   -v /your/local/path/config:/app/config \
   --name cloud-saver \
   jiangrui1994/cloudsaver:latest
@@ -170,7 +170,7 @@ docker run -d \
 ```bash
 docker run -d \
   -p 8008:8008 \
-  -v /your/local/path:/app/data \
+  -v /your/local/path/data:/app/data \
   -v /your/local/path/config:/app/config \
   --name cloud-saver \
   jiangrui1994/cloudsaver:test
@@ -191,7 +191,7 @@ services:
     ports:
       - "8008:8008"
     volumes:
-      - /your/local/path:/app/data
+      - /your/local/path/data:/app/data
       - /your/local/path/config:/app/config
     restart: unless-stopped
 ```
@@ -207,7 +207,7 @@ services:
     ports:
       - "8008:8008"
     volumes:
-      - /your/local/path:/app/data
+      - /your/local/path/data:/app/data
       - /your/local/path/config:/app/config
     restart: unless-stopped
 ```
@@ -223,7 +223,7 @@ JWT_SECRET=your_jwt_secret_here
 # Telegram配置
 TELEGRAM_BASE_URL=https://t.me/s
 
-# Telegram频道配置
+# Telegram频道配置(0.3.0及之后版本无效)
 TELE_CHANNELS=[{"id":"xxxx","name":"xxxx资源分享"}]
 ```
 
