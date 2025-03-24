@@ -15,8 +15,6 @@
 
 CloudSaver部署与使用常见问题:[https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l](https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l)
 
-以下是为您撰写的项目声明文案，已通过显眼格式强调核心风险与免责条款：
-
 ---
 
 **🔒 重要安全提醒｜关于本项目私有化部署的强制建议**  
