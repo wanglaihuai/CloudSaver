@@ -339,3 +339,6 @@ docker-compose up -d
 - 👨‍💻 感谢所有为这个项目做出贡献的开发者们！
 - 👥 感谢所有使用本项目并提供反馈的用户！
 - 感谢所有给予支持和鼓励的朋友们！
+
+
+[![Stargazers over time](https://starchart.cc/jiangrui1994/cloudsaver.svg?variant=adaptive)](https://starchart.cc/jiangrui1994/cloudsaver)
