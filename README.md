@@ -10,6 +10,8 @@
 
 官方Telegram群组：[https://t.me/cloud_saver](https://t.me/cloud_saver)
 
+官方QQ交流群（下面有二维码）：1039610300
+
 版本更新日志：[https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94](https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94)
 
 CloudSaver部署与使用常见问题：[https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l](https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l)
