@@ -10,7 +10,7 @@
 
 官方Telegram群组：[https://t.me/cloud_saver](https://t.me/cloud_saver)
 
-官方QQ交流群（下面有二维码）：1039610300
+官方QQ交流群（[二维码](https://github.com/jiangrui1994/CloudSaver?tab=readme-ov-file#%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F)）：1039610300
 
 版本更新日志：[https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94](https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94)
 
