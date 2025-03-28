@@ -5,6 +5,7 @@
 ![TypeScript](https://img.shields.io/badge/typescript-5.x-blue.svg)
 [![GitHub Stars](https://img.shields.io/github/stars/jiangrui1994/CloudSaver.svg?style=flat&logo=github)](https://github.com/jiangrui1994/CloudSaver/stargazers)
 ![Docker](https://img.shields.io/docker/pulls/jiangrui1994/cloudsaver.svg)
+<a href="https://hellogithub.com/repository/d13663fb959345e7923ecaccc3387571" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=d13663fb959345e7923ecaccc3387571&claim_uid=xP1MT4mSvN6wn5K&theme=small" alt="Featured｜HelloGitHub" /></a>
 
 一个基于 Vue 3 + Express 的网盘资源搜索与转存工具，支持响应式布局，移动端与PC完美适配，可通过 Docker 一键部署。
 
