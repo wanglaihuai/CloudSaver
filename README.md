@@ -9,8 +9,6 @@
 
 一个基于 Vue 3 + Express 的网盘资源搜索与转存工具，支持响应式布局，移动端与PC完美适配，可通过 Docker 一键部署。
 
-
-
 官方Telegram群组：[https://t.me/cloud_saver](https://t.me/cloud_saver)
 
 官方QQ交流群（[二维码](https://github.com/jiangrui1994/CloudSaver?tab=readme-ov-file#%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F)）：
@@ -24,10 +22,10 @@
 CloudSaver部署与使用常见问题(包含更多搜索频道)：[https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l](https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l)
 密码 me16 点个Star呗~
 
-
 ⚠️关于项目更新与需求处理的核心声明：[https://www.yuque.com/xiaoruihenbangde/ggogn3/gt9cgqn2n3vergxx](https://www.yuque.com/xiaoruihenbangde/ggogn3/gt9cgqn2n3vergxx)
 
 ---
+
 ⚠️**由于某些原因，[新版本](https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94)内容不包含在此开源仓库(停留在V0.2.5版本)，如需使用，请使用docker镜像进行部署使用。**
 
 ---
@@ -305,7 +303,7 @@ docker-compose up -d
 <div align="center">
   <div>
     <img src="./docs/images/qq.jpg" height="360" alt="qq群">
-    <p>qq交流群(满了)</p>
+    <p>qq交流群(2群)</p>
   </div>
 </div>
 
@@ -351,6 +349,5 @@ docker-compose up -d
 - 👨‍💻 感谢所有为这个项目做出贡献的开发者们！
 - 👥 感谢所有使用本项目并提供反馈的用户！
 - 感谢所有给予支持和鼓励的朋友们！
-
 
 [![Stargazers over time](https://starchart.cc/jiangrui1994/cloudsaver.svg?variant=adaptive)](https://starchart.cc/jiangrui1994/cloudsaver)
