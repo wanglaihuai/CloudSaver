@@ -305,7 +305,7 @@ docker-compose up -d
 <div align="center">
   <div>
     <img src="./docs/images/qq.jpg" height="360" alt="qq群">
-    <p>qq交流群</p>
+    <p>qq交流群(满了)</p>
   </div>
 </div>
 
