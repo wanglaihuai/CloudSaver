@@ -350,4 +350,6 @@ docker-compose up -d
 - 👥 感谢所有使用本项目并提供反馈的用户！
 - 感谢所有给予支持和鼓励的朋友们！
 
-[![Stargazers over time](https://starchart.cc/jiangrui1994/cloudsaver.svg?variant=adaptive)](https://starchart.cc/jiangrui1994/cloudsaver)
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jiangrui1994/cloudsaver&type=Date)](https://www.star-history.com/#jiangrui1994/cloudsaver&Date)
