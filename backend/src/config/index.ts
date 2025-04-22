@@ -51,20 +51,7 @@ const getTeleChannels = (): Channel[] => {
   }
 
   // 默认配置
-  return [
-    {
-      id: "guaguale115",
-      name: "115网盘资源分享",
-    },
-    {
-      id: "hao115",
-      name: "115网盘资源分享频道",
-    },
-    {
-      id: "yunpanshare",
-      name: "网盘资源收藏(夸克)",
-    },
-  ];
+  return [];
 };
 
 export const config: Config = {
