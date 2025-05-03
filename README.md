@@ -15,7 +15,7 @@
 
 1039610300(满了)
 
-389429056
+389429056(满了)
 
 版本更新日志：[https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94](https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94)
 
@@ -303,7 +303,7 @@ docker-compose up -d
 <div align="center">
   <div>
     <img src="./docs/images/qq.jpg" height="360" alt="qq群">
-    <p>qq交流群(2群)</p>
+    <p>qq交流群(2群)(满了！！！)</p>
   </div>
 </div>
 
