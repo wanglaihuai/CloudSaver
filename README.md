@@ -9,26 +9,12 @@
 
 一个基于 Vue 3 + Express 的网盘资源搜索与转存工具，支持响应式布局，移动端与PC完美适配，可通过 Docker 一键部署。
 
-官方Telegram群组：[https://t.me/cloud_saver](https://t.me/cloud_saver)
-
-官方QQ交流群（[二维码](https://github.com/jiangrui1994/CloudSaver?tab=readme-ov-file#%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F)）：
-
-1039610300(满了)
-
-389429056(满了)
+感谢jiangrui1994大佬！：[https://github.com/jiangrui1994/cloudsaver](https://github.com/jiangrui1994/cloudsaver)
 
 版本更新日志：[https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94](https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94)
 
 CloudSaver部署与使用常见问题(包含更多搜索频道)：[https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l](https://www.yuque.com/xiaoruihenbangde/ggogn3/ga6gaaiy5fsyw62l)
-密码 me16 点个Star呗~
-
-⚠️关于项目更新与需求处理的核心声明：[https://www.yuque.com/xiaoruihenbangde/ggogn3/gt9cgqn2n3vergxx](https://www.yuque.com/xiaoruihenbangde/ggogn3/gt9cgqn2n3vergxx)
-
----
-
-⚠️**由于某些原因，[新版本](https://www.yuque.com/xiaoruihenbangde/ggogn3/vxoqxkx4rkcz3g94)内容不包含在此开源仓库(停留在V0.2.5版本)，如需使用，请使用docker镜像进行部署使用。**
-
----
+密码 me16 给[原作者](https://github.com/jiangrui1994/cloudsaver)点个Star呗~
 
 **🔒 重要安全提醒｜关于本项目私有化部署的强制建议**
 
@@ -316,7 +302,7 @@ docker-compose up -d
 - ⭐ 给项目点个 Star
 - 🎉 分享给更多有需要的朋友
 - ☕ 请作者喝杯冰阔乐或咖啡
-- 💰 **赞赏了一定记得和我联系**
+- 💰 **赞赏了一定记得和原作者联系**
 
 <div align="center">
   <div style="display: inline-block; margin: 0 20px;">
